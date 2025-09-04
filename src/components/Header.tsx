@@ -39,25 +39,13 @@ const Header = () => {
             <a href="#why-fynda" className="text-foreground/80 hover:text-foreground transition-colors">
               Why Fynda
             </a>
-            {user && (
-              <>
-                <Link to="/auth" className="text-foreground/80 hover:text-foreground transition-colors">
-                  Account
-                </Link>
-                {isAdmin && (
-                  <Link 
-                    to="/admin" 
-                    className="flex items-center space-x-1 text-foreground/80 hover:text-foreground transition-colors"
-                  >
-                    <Settings className="h-4 w-4" />
-                    <span>Admin</span>
-                  </Link>
-                )}
-              </>
-            )}
-            {!user && (
-              <Link to="/auth" className="text-foreground/80 hover:text-foreground transition-colors">
-                Login
+            {isAdmin && (
+              <Link 
+                to="/admin" 
+                className="flex items-center space-x-1 text-foreground/80 hover:text-foreground transition-colors"
+              >
+                <Settings className="h-4 w-4" />
+                <span>Admin</span>
               </Link>
             )}
             <Button 
@@ -95,34 +83,14 @@ const Header = () => {
               >
                 Why Fynda
               </a>
-              {user && (
-                <>
-                  <Link 
-                    to="/auth" 
-                    className="text-foreground/80 hover:text-foreground transition-colors"
-                    onClick={() => setIsMenuOpen(false)}
-                  >
-                    Account
-                  </Link>
-                  {isAdmin && (
-                    <Link 
-                      to="/admin" 
-                      className="flex items-center space-x-1 text-foreground/80 hover:text-foreground transition-colors"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      <Settings className="h-4 w-4" />
-                      <span>Admin Panel</span>
-                    </Link>
-                  )}
-                </>
-              )}
-              {!user && (
+              {isAdmin && (
                 <Link 
-                  to="/auth" 
-                  className="text-foreground/80 hover:text-foreground transition-colors"
+                  to="/admin" 
+                  className="flex items-center space-x-1 text-foreground/80 hover:text-foreground transition-colors"
                   onClick={() => setIsMenuOpen(false)}
                 >
-                  Login
+                  <Settings className="h-4 w-4" />
+                  <span>Admin Panel</span>
                 </Link>
               )}
               <Button 

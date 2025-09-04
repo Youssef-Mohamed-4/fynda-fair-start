@@ -48,6 +48,12 @@ const CTAFooter = () => {
                 variant="hero" 
                 size="xl"
                 className="bg-white text-fynda-navy hover:bg-white/90"
+                onClick={() => {
+                  const waitlistElement = document.getElementById('waitlist-form');
+                  if (waitlistElement) {
+                    waitlistElement.scrollIntoView({ behavior: 'smooth' });
+                  }
+                }}
               >
                 Join Waitlist
                 <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
