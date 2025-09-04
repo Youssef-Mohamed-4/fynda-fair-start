@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_users: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          is_super_admin: boolean | null
+          updated_at: string
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          is_super_admin?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          is_super_admin?: boolean | null
+          updated_at?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      site_settings: {
+        Row: {
+          accent_color: string | null
+          coming_soon_mode: boolean | null
+          created_at: string
+          id: string
+          logo_url: string | null
+          primary_color: string | null
+          secondary_color: string | null
+          site_description: string | null
+          site_title: string | null
+          updated_at: string
+        }
+        Insert: {
+          accent_color?: string | null
+          coming_soon_mode?: boolean | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string
+        }
+        Update: {
+          accent_color?: string | null
+          coming_soon_mode?: boolean | null
+          created_at?: string
+          id?: string
+          logo_url?: string | null
+          primary_color?: string | null
+          secondary_color?: string | null
+          site_description?: string | null
+          site_title?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       waitlist_candidates: {
         Row: {
           created_at: string
@@ -73,10 +139,28 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      waitlist_analytics: {
+        Row: {
+          computer_science_count: number | null
+          data_analytics_count: number | null
+          data_science_count: number | null
+          early_career_count: number | null
+          final_year_count: number | null
+          fresh_graduate_count: number | null
+          other_field_count: number | null
+          software_eng_count: number | null
+          student_count: number | null
+          total_count: number | null
+          type: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      is_admin: {
+        Args: { user_uuid: string }
+        Returns: boolean
+      }
     }
     Enums: {
       [_ in never]: never
