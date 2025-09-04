@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 
 const WhyFyndaSection = () => {
   return (
-    <section className="py-24 bg-fynda-blue-50/30">
+    <section id="why-fynda" className="py-24 bg-fynda-blue-50/30">
       <div className="container mx-auto px-6">
         <div className="max-w-6xl mx-auto">
           
