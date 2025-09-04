@@ -17,6 +17,22 @@ const Header = () => {
     setIsMenuOpen(false);
   };
 
+  const scrollToHowItWorks = () => {
+    const howItWorksElement = document.getElementById('how-it-works');
+    if (howItWorksElement) {
+      howItWorksElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
+
+  const scrollToWhyFynda = () => {
+    const whyFyndaElement = document.getElementById('why-fynda');
+    if (whyFyndaElement) {
+      whyFyndaElement.scrollIntoView({ behavior: 'smooth' });
+    }
+    setIsMenuOpen(false);
+  };
+
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b border-border/40">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,12 +49,12 @@ const Header = () => {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8">
-            <a href="#how-it-works" className="text-foreground/80 hover:text-foreground transition-colors">
+            <button onClick={scrollToHowItWorks} className="text-foreground/80 hover:text-foreground transition-colors">
               How it Works
-            </a>
-            <a href="#why-fynda" className="text-foreground/80 hover:text-foreground transition-colors">
+            </button>
+            <button onClick={scrollToWhyFynda} className="text-foreground/80 hover:text-foreground transition-colors">
               Why Fynda
-            </a>
+            </button>
             {isAdmin && (
               <Link 
                 to="/admin" 
@@ -69,20 +85,18 @@ const Header = () => {
         {isMenuOpen && (
           <div className="md:hidden py-4 border-t border-border/40">
             <nav className="flex flex-col space-y-4">
-              <a 
-                href="#how-it-works" 
-                className="text-foreground/80 hover:text-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+              <button 
+                onClick={scrollToHowItWorks}
+                className="text-foreground/80 hover:text-foreground transition-colors text-left"
               >
                 How it Works
-              </a>
-              <a 
-                href="#why-fynda" 
-                className="text-foreground/80 hover:text-foreground transition-colors"
-                onClick={() => setIsMenuOpen(false)}
+              </button>
+              <button 
+                onClick={scrollToWhyFynda}
+                className="text-foreground/80 hover:text-foreground transition-colors text-left"
               >
                 Why Fynda
-              </a>
+              </button>
               {isAdmin && (
                 <Link 
                   to="/admin" 

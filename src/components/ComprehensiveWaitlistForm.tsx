@@ -31,7 +31,8 @@ const ComprehensiveWaitlistForm = () => {
   const [employerForm, setEmployerForm] = useState({
     name: '',
     email: '',
-    jobDescription: '',
+    role: '',
+    roleOther: '',
     earlyCareersPerYear: ''
   });
 
@@ -82,7 +83,7 @@ const ComprehensiveWaitlistForm = () => {
         .insert([{
           name: employerForm.name,
           email: employerForm.email,
-          job_description: employerForm.jobDescription,
+          role: employerForm.role === 'Other' ? employerForm.roleOther : employerForm.role,
           early_careers_per_year: employerForm.earlyCareersPerYear ? parseInt(employerForm.earlyCareersPerYear) : null
         }]);
 
@@ -319,16 +320,41 @@ const ComprehensiveWaitlistForm = () => {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="jobDescription">Job Description</Label>
-                      <Textarea
-                        id="jobDescription"
-                        value={employerForm.jobDescription}
-                        onChange={(e) => setEmployerForm(prev => ({ ...prev, jobDescription: e.target.value }))}
-                        placeholder="Describe the type of roles you're looking to fill..."
-                        className="min-h-[120px]"
+                      <Label htmlFor="role">Role</Label>
+                      <Select 
+                        value={employerForm.role} 
+                        onValueChange={(value) => setEmployerForm(prev => ({ ...prev, role: value }))}
                         required
-                      />
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your role" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="Founder / Co-founder">Founder / Co-founder</SelectItem>
+                          <SelectItem value="CEO / Executive">CEO / Executive</SelectItem>
+                          <SelectItem value="HR Manager">HR Manager</SelectItem>
+                          <SelectItem value="Recruiter / Talent Acquisition">Recruiter / Talent Acquisition</SelectItem>
+                          <SelectItem value="Hiring Manager (non-HR role responsible for a team)">Hiring Manager (non-HR role responsible for a team)</SelectItem>
+                          <SelectItem value="Team Lead / Department Head">Team Lead / Department Head</SelectItem>
+                          <SelectItem value="Startup Operator">Startup Operator</SelectItem>
+                          <SelectItem value="Other">Other (please specify)</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
+
+                    {employerForm.role === 'Other' && (
+                      <div className="space-y-2">
+                        <Label htmlFor="roleOther">Please specify your role</Label>
+                        <Input
+                          id="roleOther"
+                          type="text"
+                          value={employerForm.roleOther}
+                          onChange={(e) => setEmployerForm(prev => ({ ...prev, roleOther: e.target.value }))}
+                          placeholder="Please specify your role..."
+                          required={employerForm.role === 'Other'}
+                        />
+                      </div>
+                    )}
 
                     <div className="space-y-2">
                       <Label htmlFor="earlyCareersPerYear">
