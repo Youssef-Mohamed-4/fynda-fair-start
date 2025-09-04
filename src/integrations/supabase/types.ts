@@ -182,30 +182,6 @@ export type Database = {
         }
         Relationships: []
       }
-      waitlist: {
-        Row: {
-          created_at: string | null
-          email: string
-          full_name: string | null
-          id: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          full_name?: string | null
-          id?: string
-          updated_at?: string | null
-        }
-        Relationships: []
-      }
       waitlist_candidates: {
         Row: {
           created_at: string
@@ -242,24 +218,24 @@ export type Database = {
           early_careers_per_year: number | null
           email: string
           id: string
-          job_description: string
           name: string
+          role: string
         }
         Insert: {
           created_at?: string
           early_careers_per_year?: number | null
           email: string
           id?: string
-          job_description: string
           name: string
+          role?: string
         }
         Update: {
           created_at?: string
           early_careers_per_year?: number | null
           email?: string
           id?: string
-          job_description?: string
           name?: string
+          role?: string
         }
         Relationships: []
       }
