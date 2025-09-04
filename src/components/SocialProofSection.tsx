@@ -12,9 +12,9 @@ const SocialProofSection = () => {
                   70%
                 </div>
                 <p className="text-lg text-muted-foreground mt-2">
-                  of young people face rejection
+                  of young talent never gets
                   <br />
-                  <span className="font-semibold text-fynda-navy">without an interview</span>
+                  <span className="font-semibold text-fynda-navy">past CV screening</span>
                 </p>
               </div>
               
@@ -25,9 +25,9 @@ const SocialProofSection = () => {
                   Fynda changes that.
                 </h3>
                 <p className="text-muted-foreground">
-                  Every candidate gets a fair chance
+                  Everyone deserves an interview.
                   <br />
-                  to showcase their potential
+                  We make it happen with AI fairness.
                 </p>
               </div>
             </div>

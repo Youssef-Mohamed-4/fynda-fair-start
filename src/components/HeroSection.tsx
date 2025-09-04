@@ -15,13 +15,12 @@ const HeroSection = () => {
             <div className="text-center lg:text-left space-y-8 animate-fade-in">
               <div className="space-y-6">
                 <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
-                  Fair AI-Powered 
-                  <span className="bg-gradient-hero bg-clip-text text-transparent"> Hiring</span> 
-                  <br />for Early Careers
+                  Fair AI Hiring 
+                  <span className="bg-gradient-hero bg-clip-text text-transparent">for Early Careers</span>
                 </h1>
                 
                 <p className="text-xl md:text-2xl text-muted-foreground max-w-2xl leading-relaxed">
-                  Fynda connects young talent with real opportunities using AI interviews and fair shortlisting—no CVs required.
+                  Everyone deserves an interview. Fynda makes it happen with AI-powered fairness.
                 </p>
               </div>
               
@@ -40,9 +39,9 @@ const HeroSection = () => {
               
               <div className="pt-4">
                 <p className="text-sm text-muted-foreground">
-                  <span className="font-semibold text-fynda-navy">70%</span> of young people face rejection without an interview. 
+                  <span className="font-semibold text-fynda-navy">Every candidate</span> gets a fair chance. 
                   <br className="hidden sm:block" />
-                  <span className="font-semibold">Fynda changes that.</span>
+                  <span className="font-semibold">No more CV screening barriers.</span>
                 </p>
               </div>
             </div>

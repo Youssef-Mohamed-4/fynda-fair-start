@@ -34,7 +34,7 @@ const WhyFyndaSection = () => {
               </div>
               
               <blockquote className="text-xl text-foreground font-medium leading-relaxed">
-                "Equal chance for everyone, no bias, no endless applying."
+                "Equal chance for everyone, no bias, no endless rejection."
               </blockquote>
               
               <div className="space-y-4">
@@ -44,7 +44,7 @@ const WhyFyndaSection = () => {
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                     </svg>
                   </div>
-                  <p className="text-muted-foreground">No CV required - show your true potential</p>
+                  <p className="text-muted-foreground">No CV required - everyone gets interviewed</p>
                 </div>
                 
                 <div className="flex items-start space-x-3">

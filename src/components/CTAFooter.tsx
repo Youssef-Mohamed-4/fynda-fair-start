@@ -40,7 +40,7 @@ const CTAFooter = () => {
             </h2>
             
             <p className="text-xl text-white/80 max-w-2xl mx-auto leading-relaxed">
-              Join our waitlist and get early access to the platform that's changing how young talent connects with opportunity.
+              Join our waitlist and get early access to the platform where everyone deserves an interview.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">

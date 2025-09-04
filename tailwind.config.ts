@@ -69,7 +69,7 @@ export default {
 				'fynda-blue-100': 'hsl(var(--fynda-blue-100))'
 			},
 			fontFamily: {
-				sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+				sans: ['Poppins', 'ui-sans-serif', 'system-ui', 'sans-serif'],
 			},
 			backgroundImage: {
 				'gradient-primary': 'var(--gradient-primary)',

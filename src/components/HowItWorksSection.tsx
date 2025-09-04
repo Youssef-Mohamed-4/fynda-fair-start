@@ -4,21 +4,21 @@ const HowItWorksSection = () => {
   const steps = [
     {
       number: "01",
-      title: "Create Your Profile",
-      description: "Sign up or get invited by an employer. No CV needed—just your authentic self.",
-      icon: "profile"
-    },
-    {
-      number: "02", 
-      title: "AI-Led Interview",
-      description: "Every applicant gets a fair chance with our AI interviewer. No bias, just talent.",
+      title: "AI Interview for All",
+      description: "Every candidate gets the same fair chance with our AI interviewer. No shortcuts, no bias.",
       icon: "interview"
     },
     {
+      number: "02", 
+      title: "Fair Scoring & Ranking",
+      description: "Skills and potential matter more than experience. Our AI evaluates what really counts.",
+      icon: "scoring"
+    },
+    {
       number: "03",
-      title: "Fair Shortlisting", 
-      description: "Our AI recommends top talent based on skills and potential, not just experience.",
-      icon: "shortlist"
+      title: "Top Matches Shared", 
+      description: "Employers receive a curated shortlist of candidates who truly fit their needs.",
+      icon: "matches"
     }
   ];
 
@@ -30,7 +30,7 @@ const HowItWorksSection = () => {
             How It <span className="bg-gradient-hero bg-clip-text text-transparent">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Three simple steps to connect talent with opportunity
+            Three simple steps to fair hiring for everyone
           </p>
         </div>
         
