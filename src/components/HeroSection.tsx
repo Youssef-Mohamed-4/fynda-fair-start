@@ -1,9 +1,7 @@
 import { Button } from "@/components/ui/button";
 import heroIllustration from "@/assets/hero-illustration.png";
-
 const HeroSection = () => {
-  return (
-    <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+  return <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-subtle opacity-30"></div>
       
@@ -49,22 +47,16 @@ const HeroSection = () => {
             {/* Right side - Illustration */}
             <div className="flex justify-center lg:justify-end animate-fade-in">
               <div className="relative">
-                <img 
-                  src={heroIllustration} 
-                  alt="Network visualization showing connections between people and opportunities through AI"
-                  className="w-full max-w-lg h-auto animate-float"
-                />
+                <img src={heroIllustration} alt="Network visualization showing connections between people and opportunities through AI" className="w-full max-w-lg h-auto animate-float" />
                 {/* Floating elements */}
                 <div className="absolute -top-4 -right-4 w-16 h-16 bg-gradient-hero rounded-full opacity-20 animate-pulse"></div>
-                <div className="absolute -bottom-6 -left-6 w-12 h-12 bg-fynda-light-blue rounded-full opacity-30 animate-pulse" style={{animationDelay: '1s'}}></div>
+                
               </div>
             </div>
             
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default HeroSection;
