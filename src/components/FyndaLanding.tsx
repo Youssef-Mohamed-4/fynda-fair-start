@@ -3,6 +3,7 @@ import HeroSection from "./HeroSection";
 import HowItWorksSection from "./HowItWorksSection";
 import WhyFyndaSection from "./WhyFyndaSection";
 import SocialProofSection from "./SocialProofSection";
+import WaitlistForm from "./WaitlistForm";
 import CTAFooter from "./CTAFooter";
 
 const FyndaLanding = () => {
@@ -13,6 +14,7 @@ const FyndaLanding = () => {
       <HowItWorksSection />
       <WhyFyndaSection />
       <SocialProofSection />
+      <WaitlistForm />
       <CTAFooter />
     </main>
   );

@@ -14,7 +14,63 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      waitlist_candidates: {
+        Row: {
+          created_at: string
+          current_state: string
+          email: string
+          field_description: string | null
+          field_of_study: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          current_state: string
+          email: string
+          field_description?: string | null
+          field_of_study: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          current_state?: string
+          email?: string
+          field_description?: string | null
+          field_of_study?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      waitlist_employers: {
+        Row: {
+          created_at: string
+          early_careers_per_year: number | null
+          email: string
+          id: string
+          job_description: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          early_careers_per_year?: number | null
+          email: string
+          id?: string
+          job_description: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          early_careers_per_year?: number | null
+          email?: string
+          id?: string
+          job_description?: string
+          name?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

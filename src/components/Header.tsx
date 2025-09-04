@@ -19,7 +19,11 @@ const Header = () => {
             <Button variant="ghost" size="sm">
               How It Works
             </Button>
-            <Button variant="waitlist" size="sm">
+            <Button 
+              variant="waitlist" 
+              size="sm"
+              onClick={() => document.getElementById('waitlist')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               Join Waitlist
             </Button>
           </div>
