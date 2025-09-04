@@ -45,9 +45,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     );
 
     // Check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
+      
+      // Check admin status for existing session
+      if (session?.user) {
+        const { data } = await supabase
+          .from('admin_users')
+          .select('id')
+          .eq('user_id', session.user.id)
+          .single();
+        setIsAdmin(!!data);
+      } else {
+        setIsAdmin(false);
+      }
       setLoading(false);
     });
 
