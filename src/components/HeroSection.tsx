@@ -31,7 +31,11 @@ const HeroSection = () => {
                 </svg>
               </Button>
               
-              <Button variant="subtle" size="xl">
+              <Button 
+                variant="subtle" 
+                size="xl"
+                onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}
+              >
                 How It Works
               </Button>
             </div>
