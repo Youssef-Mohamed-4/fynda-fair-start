@@ -15,12 +15,12 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { user, signIn, signUp } = useAuth();
+  const { user, isAdmin, signIn, signUp } = useAuth();
   const { toast } = useToast();
 
   // Redirect if already authenticated
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to={isAdmin ? "/admin" : "/"} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
