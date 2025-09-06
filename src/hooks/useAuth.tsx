@@ -8,7 +8,6 @@ interface AuthContextType {
   isAdmin: boolean;
   loading: boolean;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signUp: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
 }
 
@@ -21,13 +20,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      async (_event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
-        
-        // Check admin status
+
         if (session?.user) {
           try {
             const { data } = await supabase
@@ -36,22 +33,21 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .eq('user_id', session.user.id)
               .single();
             setIsAdmin(!!data);
-          } catch (error) {
+          } catch {
             setIsAdmin(false);
           }
         } else {
           setIsAdmin(false);
         }
+
         setLoading(false);
       }
     );
 
-    // Check for existing session
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
-      
-      // Check admin status for existing session
+
       if (session?.user) {
         try {
           const { data } = await supabase
@@ -60,12 +56,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .eq('user_id', session.user.id)
             .single();
           setIsAdmin(!!data);
-        } catch (error) {
+        } catch {
           setIsAdmin(false);
         }
       } else {
         setIsAdmin(false);
       }
+
       setLoading(false);
     });
 
@@ -73,22 +70,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    return { error };
-  };
-
-  const signUp = async (email: string, password: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: redirectUrl
-      }
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
     return { error };
   };
 
@@ -102,7 +84,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     isAdmin,
     loading,
     signIn,
-    signUp,
     signOut,
   };
 
@@ -111,8 +92,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
 export const useAuth = () => {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 };
