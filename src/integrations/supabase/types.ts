@@ -260,7 +260,7 @@ export type Database = {
     }
     Functions: {
       is_admin: {
-        Args: { user_id?: string }
+        Args: { check_user_id?: string }
         Returns: boolean
       }
       log_auth_attempt: {
