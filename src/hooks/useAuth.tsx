@@ -20,9 +20,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Auth state change listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
+      async (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -34,17 +33,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
               .eq('user_id', session.user.id)
               .single();
             setIsAdmin(!!data);
-          } catch {
+          } catch (error) {
             setIsAdmin(false);
           }
         } else {
           setIsAdmin(false);
         }
+
         setLoading(false);
       }
     );
 
-    // Initial session check
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -57,12 +56,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             .eq('user_id', session.user.id)
             .single();
           setIsAdmin(!!data);
-        } catch {
+        } catch (error) {
           setIsAdmin(false);
         }
       } else {
         setIsAdmin(false);
       }
+
       setLoading(false);
     });
 
@@ -70,19 +70,30 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
     return { error };
   };
 
   const signOut = async () => {
     await supabase.auth.signOut();
+    setUser(null);
+    setSession(null);
+    setIsAdmin(false);
   };
 
-  return (
-    <AuthContext.Provider value={{ user, session, isAdmin, loading, signIn, signOut }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    session,
+    isAdmin,
+    loading,
+    signIn,
+    signOut,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {
