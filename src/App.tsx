@@ -1,10 +1,14 @@
-import { BrowserRouter, Route, Routes } from 'react-router-dom';
-import IndexPage from '@/pages/Index';
-import AuthPage from '@/pages/admin/Auth';
-import NotFoundPage from '@/pages/NotFound';
-import ComingSoonToggle from '@/components/ComingSoon';
-import SiteSettings from '@/components/SiteSettings';
-import AdminLayout from '@/components/admin/AdminLayout';
+import React from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+
+// Pages
+import IndexPage from './pages/Index';
+import AuthPage from './pages/admin/Auth';
+import NotFoundPage from './pages/NotFound';
+import ComingSoonToggle from './components/ComingSoon';
+import SiteSettings from './components/SiteSettings';
+import AdminProtected from './components/admin/AdminProtected';
+
 
 function App() {
   return (
@@ -14,13 +18,20 @@ function App() {
         <Route path="/" element={<IndexPage />} />
 
         {/* Admin routes */}
-        <Route path="/admin" element={<AdminLayout />}>
-          <Route path="auth" element={<AuthPage />} />
-          <Route path="coming-soon" element={<ComingSoonToggle />} />
-          <Route path="settings" element={<SiteSettings />} />
-        </Route>
+        <Route
+          path="/admin/*"
+          element={
+            <AdminProtected>
+              <Routes>
+                <Route path="auth" element={<AuthPage />} />
+                <Route path="coming-soon" element={<ComingSoonToggle />} />
+                <Route path="settings" element={<SiteSettings />} />
+              </Routes>
+            </AdminProtected>
+          }
+        />
 
-        {/* Catch all 404 */}
+        {/* 404 fallback */}
         <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </BrowserRouter>
