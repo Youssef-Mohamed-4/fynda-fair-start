@@ -55,11 +55,9 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-gradient-subtle p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Admin Login
-          </CardTitle>
+          <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
           <CardDescription className="text-center">
-            Sign in to access your admin panel
+            Enter your credentials to access the admin panel
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -93,11 +91,7 @@ const Auth = () => {
               </Alert>
             )}
 
-            <Button 
-              type="submit" 
-              className="w-full" 
-              disabled={loading}
-            >
+            <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Loading...' : 'Sign In'}
             </Button>
           </form>
