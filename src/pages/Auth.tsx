@@ -9,16 +9,14 @@ import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  
-  const { user, isAdmin, loading: authLoading, signIn, signUp } = useAuth();
+
+  const { user, isAdmin, loading: authLoading, signIn } = useAuth();
   const { toast } = useToast();
 
-  // Wait for loading to complete before redirecting
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -27,7 +25,6 @@ const Auth = () => {
     );
   }
 
-  // Redirect if already authenticated (after loading is complete)
   if (user) {
     return <Navigate to={isAdmin ? "/admin" : "/"} replace />;
   }
@@ -38,24 +35,14 @@ const Auth = () => {
     setError('');
 
     try {
-      const result = isLogin 
-        ? await signIn(email, password)
-        : await signUp(email, password);
-
+      const result = await signIn(email, password);
       if (result.error) {
         setError(result.error.message);
       } else {
-        if (!isLogin) {
-          toast({
-            title: "Account created!",
-            description: "Please check your email to confirm your account.",
-          });
-        } else {
-          toast({
-            title: "Welcome back!",
-            description: "You have been successfully logged in.",
-          });
-        }
+        toast({
+          title: "Welcome back!",
+          description: "You have been successfully logged in.",
+        });
       }
     } catch (err: any) {
       setError(err.message);
@@ -69,13 +56,10 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            {isLogin ? 'Welcome Back' : 'Create Account'}
+            Admin Login
           </CardTitle>
           <CardDescription className="text-center">
-            {isLogin 
-              ? 'Sign in to access your admin panel'
-              : 'Sign up to create your admin account'
-            }
+            Sign in to access your admin panel
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -102,34 +86,21 @@ const Auth = () => {
                 required
               />
             </div>
-            
+
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            
+
             <Button 
               type="submit" 
               className="w-full" 
               disabled={loading}
             >
-              {loading ? 'Loading...' : (isLogin ? 'Sign In' : 'Sign Up')}
+              {loading ? 'Loading...' : 'Sign In'}
             </Button>
           </form>
-          
-          <div className="text-center">
-            <Button
-              variant="link"
-              onClick={() => setIsLogin(!isLogin)}
-              className="text-sm"
-            >
-              {isLogin 
-                ? "Don't have an account? Sign up"
-                : "Already have an account? Sign in"
-              }
-            </Button>
-          </div>
         </CardContent>
       </Card>
     </div>
