@@ -3,7 +3,6 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Label } from '@/components/ui/label';
 import { Globe, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
@@ -11,7 +10,7 @@ const ComingSoonToggle = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery<any>({
     queryKey: ['site-settings'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -25,6 +24,7 @@ const ComingSoonToggle = () => {
 
   const toggleComingSoon = useMutation({
     mutationFn: async (comingSoonMode: boolean) => {
+      if (!settings) return;
       const { error } = await supabase
         .from('site_settings')
         .update({ coming_soon_mode: comingSoonMode })
@@ -46,7 +46,7 @@ const ComingSoonToggle = () => {
     toggleComingSoon.mutate(!settings?.coming_soon_mode);
   };
 
-  if (isLoading) {
+  if (isLoading || !settings) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Coming Soon Mode</h1>
@@ -57,15 +57,12 @@ const ComingSoonToggle = () => {
     );
   }
 
-  const isComingSoon = settings?.coming_soon_mode;
+  const isComingSoon = settings.coming_soon_mode ?? false;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Coming Soon Mode</h1>
-        <p className="text-muted-foreground">
-          Control website visibility to the public
-        </p>
       </div>
 
       <Card className="max-w-2xl">
@@ -87,64 +84,24 @@ const ComingSoonToggle = () => {
                 <h3 className="font-semibold">
                   {isComingSoon ? 'Coming Soon Mode' : 'Website Live'}
                 </h3>
-                <p className="text-sm text-muted-foreground">
-                  {isComingSoon 
-                    ? 'Visitors see a coming soon page'
-                    : 'Website is publicly accessible'
-                  }
-                </p>
               </div>
             </div>
             <Switch
               checked={!isComingSoon}
-              onCheckedChange={() => handleToggle()}
+              onCheckedChange={handleToggle}
               disabled={toggleComingSoon.isPending}
             />
           </div>
 
-          <div className="space-y-4">
-            <h4 className="font-medium">Current Status:</h4>
-            <div className={`p-4 rounded-lg border ${
-              isComingSoon ? 'border-orange-200 bg-orange-50' : 'border-green-200 bg-green-50'
-            }`}>
-              <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${
-                  isComingSoon ? 'bg-orange-500' : 'bg-green-500'
-                }`} />
-                <span className={`font-medium ${
-                  isComingSoon ? 'text-orange-700' : 'text-green-700'
-                }`}>
-                  {isComingSoon ? 'Coming Soon Page Active' : 'Website is Live'}
-                </span>
-              </div>
-              <p className={`mt-2 text-sm ${
-                isComingSoon ? 'text-orange-600' : 'text-green-600'
-              }`}>
-                {isComingSoon 
-                  ? 'Only you and other admins can see the full website. Visitors see a coming soon message.'
-                  : 'Everyone can access your website and see all content including the waitlist form.'
-                }
-              </p>
-            </div>
-          </div>
-
-          <div className="pt-4">
-            <Button
-              onClick={handleToggle}
-              disabled={toggleComingSoon.isPending}
-              variant={isComingSoon ? "default" : "secondary"}
-              size="lg"
-              className="w-full"
-            >
-              {toggleComingSoon.isPending ? (
-                'Updating...'
-              ) : isComingSoon ? (
-                'Make Website Live'
-              ) : (
-                'Enable Coming Soon Mode'
-              )}
-            </Button>
-          </div>
+          <Button
+            onClick={handleToggle}
+            disabled={toggleComingSoon.isPending}
+            variant={isComingSoon ? "default" : "secondary"}
+            size="lg"
+            className="w-full"
+          >
+            {toggleComingSoon.isPending ? 'Updating...' : isComingSoon ? 'Make Website Live' : 'Enable Coming Soon Mode'}
+          </Button>
         </CardContent>
       </Card>
     </div>

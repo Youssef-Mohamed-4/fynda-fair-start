@@ -4,11 +4,12 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 // Pages
 import IndexPage from './pages/Index';
 import AuthPage from './pages/admin/Auth';
-import NotFoundPage from './pages/NotFound';
-import ComingSoonToggle from './components/ComingSoon';
-import SiteSettings from './components/SiteSettings';
-import AdminProtected from './components/admin/AdminProtected';
+import NotFoundPage from './pages/admin/NotFound';
 
+// Admin components
+import ComingSoonToggle from './pages/admin/ComingSoonToggle';
+import SiteSettings from './pages/admin/SiteSettings';
+import AdminProtected from './components/admin/AdminProtected';
 
 function App() {
   return (

@@ -14,7 +14,7 @@ const SiteSettings = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: settings, isLoading } = useQuery({
+  const { data: settings, isLoading } = useQuery<any>({
     queryKey: ['site-settings'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -28,6 +28,7 @@ const SiteSettings = () => {
 
   const updateSettings = useMutation({
     mutationFn: async (newSettings: any) => {
+      if (!settings) return;
       const { error } = await supabase
         .from('site_settings')
         .update(newSettings)
@@ -46,23 +47,22 @@ const SiteSettings = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
-    
+
     const updatedSettings = {
-      site_title: formData.get('site_title'),
-      site_description: formData.get('site_description'),
-      primary_color: formData.get('primary_color'),
-      secondary_color: formData.get('secondary_color'),
-      accent_color: formData.get('accent_color'),
+      site_title: formData.get('site_title')?.toString() ?? '',
+      site_description: formData.get('site_description')?.toString() ?? '',
+      primary_color: formData.get('primary_color')?.toString() ?? '',
+      secondary_color: formData.get('secondary_color')?.toString() ?? '',
+      accent_color: formData.get('accent_color')?.toString() ?? '',
     };
 
     updateSettings.mutate(updatedSettings);
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+    const file = e.target.files?.[0] ?? null;
+    setLogoFile(file);
     if (file) {
-      setLogoFile(file);
-      // In a real app, you'd upload this to Supabase Storage
       toast({
         title: "Logo selected",
         description: "Logo upload functionality would be implemented with Supabase Storage",
@@ -70,7 +70,7 @@ const SiteSettings = () => {
     }
   };
 
-  if (isLoading) {
+  if (isLoading || !settings) {
     return (
       <div className="space-y-6">
         <h1 className="text-3xl font-bold">Site Settings</h1>
@@ -86,9 +86,6 @@ const SiteSettings = () => {
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Site Settings</h1>
-        <p className="text-muted-foreground">
-          Manage your website's basic settings and branding
-        </p>
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
@@ -99,21 +96,11 @@ const SiteSettings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="site_title">Site Title</Label>
-              <Input
-                id="site_title"
-                name="site_title"
-                defaultValue={settings?.site_title}
-                placeholder="Fynda"
-              />
+              <Input id="site_title" name="site_title" defaultValue={settings.site_title ?? ''} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="site_description">Site Description</Label>
-              <Textarea
-                id="site_description"
-                name="site_description"
-                defaultValue={settings?.site_description}
-                placeholder="Connect ambitious early careers with progressive employers"
-              />
+              <Textarea id="site_description" name="site_description" defaultValue={settings.site_description ?? ''} />
             </div>
           </CardContent>
         </Card>
@@ -130,71 +117,27 @@ const SiteSettings = () => {
                   Upload Logo
                 </label>
               </Button>
-              <input
-                id="logo-upload"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleLogoUpload}
-              />
-              {logoFile && (
-                <span className="text-sm text-muted-foreground">
-                  {logoFile.name}
-                </span>
-              )}
+              <input id="logo-upload" type="file" accept="image/*" className="hidden" onChange={handleLogoUpload} />
+              {logoFile && <span className="text-sm text-muted-foreground">{logoFile.name}</span>}
             </div>
-            <p className="text-sm text-muted-foreground">
-              Upload a logo for your site (PNG, JPG, SVG supported)
-            </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Color Scheme (HSL Values)</CardTitle>
+            <CardTitle>Color Scheme</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="primary_color">Primary Color</Label>
-                <Input
-                  id="primary_color"
-                  name="primary_color"
-                  defaultValue={settings?.primary_color}
-                  placeholder="213 85% 15%"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="secondary_color">Secondary Color</Label>
-                <Input
-                  id="secondary_color"
-                  name="secondary_color"
-                  defaultValue={settings?.secondary_color}
-                  placeholder="213 100% 96%"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="accent_color">Accent Color</Label>
-                <Input
-                  id="accent_color"
-                  name="accent_color"
-                  defaultValue={settings?.accent_color}
-                  placeholder="213 85% 60%"
-                />
-              </div>
-            </div>
-            <p className="text-sm text-muted-foreground">
-              Enter HSL color values without the "hsl()" wrapper. Example: "213 85% 15%"
-            </p>
+            <Input name="primary_color" defaultValue={settings.primary_color ?? ''} />
+            <Input name="secondary_color" defaultValue={settings.secondary_color ?? ''} />
+            <Input name="accent_color" defaultValue={settings.accent_color ?? ''} />
           </CardContent>
         </Card>
 
-        <div className="flex justify-end">
-          <Button type="submit" disabled={updateSettings.isPending}>
-            <Save className="mr-2 h-4 w-4" />
-            {updateSettings.isPending ? 'Saving...' : 'Save Settings'}
-          </Button>
-        </div>
+        <Button type="submit" disabled={updateSettings.isPending}>
+          <Save className="mr-2 h-4 w-4" />
+          {updateSettings.isPending ? 'Saving...' : 'Save Settings'}
+        </Button>
       </form>
     </div>
   );
