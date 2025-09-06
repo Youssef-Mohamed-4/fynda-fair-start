@@ -1,17 +1,18 @@
-import { SidebarProvider } from "@/components/ui/sidebar"
-import { AdminSidebar } from "@/components/admin/AdminSidebar"
-import { Outlet, useNavigate } from "react-router-dom"
-import { useEffect, useState } from "react"
-import { supabase } from "@/integrations/supabase/client"
-import { toast } from '@/hooks/use-toast' // assuming you already have this hook
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { AdminSidebar } from "@/components/admin/AdminSidebar";
+import { Outlet, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export default function AdminLayout() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const { data: user } = await supabase.auth.getUser();
+      const { data: { user } } = await supabase.auth.getUser();
 
       if (!user) {
         setLoading(false);
@@ -39,12 +40,14 @@ export default function AdminLayout() {
     };
 
     checkAdmin();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold text-muted-foreground">Checking admin access...</p>
+        <p className="text-lg font-semibold text-muted-foreground">
+          Checking admin access...
+        </p>
       </div>
     );
   }
@@ -63,5 +66,5 @@ export default function AdminLayout() {
         </main>
       </div>
     </SidebarProvider>
-  )
+  );
 }
