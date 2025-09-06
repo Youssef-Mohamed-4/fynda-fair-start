@@ -3,39 +3,50 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar"
 import { Outlet, useNavigate } from "react-router-dom"
 import { useEffect, useState } from "react"
 import { supabase } from "@/integrations/supabase/client"
+import { toast } from '@/hooks/use-toast' // assuming you already have this hook
 
 export default function AdminLayout() {
-  const navigate = useNavigate()
-  const [checking, setChecking] = useState(true)
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: user } = await supabase.auth.getUser();
 
       if (!user) {
-        // Not logged in → send to login
-        navigate("/login")
-        return
+        setLoading(false);
+        return;
       }
 
-      // Check if this user is admin using your SQL function
-      const { data, error } = await supabase.rpc("is_admin")
+      const { data: isAdmin, error } = await supabase.rpc("is_admin");
 
-      if (error || !data) {
-        // Not an admin → block access
-        navigate("/")
-        return
+      if (error) {
+        console.error("Admin check failed:", error.message);
+        setLoading(false);
+        return;
       }
 
-      // Admin confirmed
-      setChecking(false)
-    }
+      if (!isAdmin) {
+        toast({
+          title: "Access Denied",
+          description: "You are not an admin and cannot access this page.",
+          variant: "destructive",
+        });
+        navigate("/");
+      } else {
+        setLoading(false);
+      }
+    };
 
-    checkAdmin()
-  }, [navigate])
+    checkAdmin();
+  }, [navigate]);
 
-  if (checking) {
-    return <div className="p-6">Checking admin access...</div>
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-lg font-semibold text-muted-foreground">Checking admin access...</p>
+      </div>
+    );
   }
 
   return (
