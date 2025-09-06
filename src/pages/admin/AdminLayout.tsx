@@ -1,8 +1,43 @@
 import { SidebarProvider } from "@/components/ui/sidebar"
 import { AdminSidebar } from "@/components/admin/AdminSidebar"
-import { Outlet } from "react-router-dom"
+import { Outlet, useNavigate } from "react-router-dom"
+import { useEffect, useState } from "react"
+import { supabase } from "@/integrations/supabase/client"
 
 export default function AdminLayout() {
+  const navigate = useNavigate()
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    const checkAdmin = async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+
+      if (!user) {
+        // Not logged in → send to login
+        navigate("/login")
+        return
+      }
+
+      // Check if this user is admin using your SQL function
+      const { data, error } = await supabase.rpc("is_admin")
+
+      if (error || !data) {
+        // Not an admin → block access
+        navigate("/")
+        return
+      }
+
+      // Admin confirmed
+      setChecking(false)
+    }
+
+    checkAdmin()
+  }, [navigate])
+
+  if (checking) {
+    return <div className="p-6">Checking admin access...</div>
+  }
+
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">
