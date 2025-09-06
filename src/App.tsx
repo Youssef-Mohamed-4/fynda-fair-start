@@ -1,39 +1,29 @@
-import React from 'react';
+// src/App.tsx
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 // Pages
-import IndexPage from './pages/Index';
-import AuthPage from './pages/admin/Auth';
-import NotFoundPage from './pages/admin/NotFound';
-
-// Admin components
-import ComingSoonToggle from './pages/admin/ComingSoonToggle';
+import Home from './pages/Index';
+import Auth from './pages/admin/Auth';
+import AdminNotFound from './pages/admin/NotFound';
 import SiteSettings from './pages/admin/SiteSettings';
-import AdminProtected from './components/admin/AdminProtected';
+import ComingSoonToggle from './pages/admin/ComingSoonToggle';
+
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public home page */}
-        <Route path="/" element={<IndexPage />} />
+        {/* Public Pages */}
+        <Route path="/" element={<Home />} />
 
-        {/* Admin routes */}
-        <Route
-          path="/admin/*"
-          element={
-            <AdminProtected>
-              <Routes>
-                <Route path="auth" element={<AuthPage />} />
-                <Route path="coming-soon" element={<ComingSoonToggle />} />
-                <Route path="settings" element={<SiteSettings />} />
-              </Routes>
-            </AdminProtected>
-          }
-        />
+        {/* Admin Pages */}
+        <Route path="/admin/auth" element={<Auth />} />
+        <Route path="/admin/settings" element={<SiteSettings />} />
+        <Route path="/admin/coming-soon" element={<ComingSoonToggle />} />
+        <Route path="/admin/*" element={<AdminNotFound />} />
 
-        {/* 404 fallback */}
-        <Route path="*" element={<NotFoundPage />} />
+        {/* Catch-all fallback */}
+        <Route path="*" element={<div>Page Not Found</div>} />
       </Routes>
     </BrowserRouter>
   );
