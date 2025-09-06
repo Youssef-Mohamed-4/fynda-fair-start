@@ -29,14 +29,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         
         // Check admin status
         if (session?.user) {
-          setTimeout(async () => {
+          try {
             const { data } = await supabase
               .from('admin_users')
               .select('id')
               .eq('user_id', session.user.id)
               .single();
             setIsAdmin(!!data);
-          }, 0);
+          } catch (error) {
+            setIsAdmin(false);
+          }
         } else {
           setIsAdmin(false);
         }
@@ -51,12 +53,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       
       // Check admin status for existing session
       if (session?.user) {
-        const { data } = await supabase
-          .from('admin_users')
-          .select('id')
-          .eq('user_id', session.user.id)
-          .single();
-        setIsAdmin(!!data);
+        try {
+          const { data } = await supabase
+            .from('admin_users')
+            .select('id')
+            .eq('user_id', session.user.id)
+            .single();
+          setIsAdmin(!!data);
+        } catch (error) {
+          setIsAdmin(false);
+        }
       } else {
         setIsAdmin(false);
       }

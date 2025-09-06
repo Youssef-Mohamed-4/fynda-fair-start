@@ -15,10 +15,19 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
-  const { user, isAdmin, signIn, signUp } = useAuth();
+  const { user, isAdmin, loading: authLoading, signIn, signUp } = useAuth();
   const { toast } = useToast();
 
-  // Redirect if already authenticated
+  // Wait for loading to complete before redirecting
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+      </div>
+    );
+  }
+
+  // Redirect if already authenticated (after loading is complete)
   if (user) {
     return <Navigate to={isAdmin ? "/admin" : "/"} replace />;
   }
