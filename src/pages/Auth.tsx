@@ -36,6 +36,7 @@ const Auth = () => {
 
     try {
       const result = await signIn(email, password);
+
       if (result.error) {
         setError(result.error.message);
       } else {
@@ -57,7 +58,7 @@ const Auth = () => {
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">Admin Login</CardTitle>
           <CardDescription className="text-center">
-            Enter your credentials to access the admin panel
+            Sign in to access your admin panel
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
@@ -84,13 +85,11 @@ const Auth = () => {
                 required
               />
             </div>
-
             {error && (
               <Alert variant="destructive">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? 'Loading...' : 'Sign In'}
             </Button>
