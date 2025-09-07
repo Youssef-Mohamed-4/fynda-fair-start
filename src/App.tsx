@@ -3,8 +3,8 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 
 // Pages
 import Home from './pages/Index';
-import Auth from './pages/admin/Auth';
-import AdminNotFound from './pages/admin/NotFound';
+import Auth from './pages/Auth';
+import AdminNotFound from './pages/NotFound';
 import SiteSettings from './pages/admin/SiteSettings';
 import ComingSoonToggle from './pages/admin/ComingSoonToggle';
 
