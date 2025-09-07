@@ -41,6 +41,24 @@ export type Database = {
         }
         Relationships: []
       }
+      admins: {
+        Row: {
+          email: string
+          id: string
+          user_id: string | null
+        }
+        Insert: {
+          email: string
+          id?: string
+          user_id?: string | null
+        }
+        Update: {
+          email?: string
+          id?: string
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       auth_rate_limits: {
         Row: {
           attempt_count: number | null
@@ -259,6 +277,17 @@ export type Database = {
       }
     }
     Functions: {
+      get_waitlist_analytics: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          early_career_count: number
+          final_year_count: number
+          fresh_graduate_count: number
+          student_count: number
+          total_count: number
+          type: string
+        }[]
+      }
       is_admin: {
         Args: { check_user_id?: string }
         Returns: boolean

@@ -9,10 +9,10 @@ const SecurityHeaders = () => {
       metaCSP.httpEquiv = 'Content-Security-Policy';
       metaCSP.content = "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:";
       
-      // X-Frame-Options
+      // X-Frame-Options (SAMEORIGIN to allow Lovable editor)
       const metaFrameOptions = document.createElement('meta');
       metaFrameOptions.httpEquiv = 'X-Frame-Options';
-      metaFrameOptions.content = 'DENY';
+      metaFrameOptions.content = 'SAMEORIGIN';
       
       // X-Content-Type-Options
       const metaContentType = document.createElement('meta');
