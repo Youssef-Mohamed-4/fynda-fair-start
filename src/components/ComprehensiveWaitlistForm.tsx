@@ -36,20 +36,47 @@ const ComprehensiveWaitlistForm = () => {
     earlyCareersPerYear: ''
   });
 
+  // Input sanitization helper
+  const sanitizeInput = (input: string) => {
+    return input.trim().replace(/[<>]/g, '').substring(0, 500);
+  };
+
+  const validateEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
   const handleCandidateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    // Input validation and sanitization
+    const sanitizedName = sanitizeInput(candidateForm.name);
+    const sanitizedEmail = candidateForm.email.trim().toLowerCase();
+    const sanitizedDescription = candidateForm.fieldDescription ? sanitizeInput(candidateForm.fieldDescription) : '';
+
+    if (!sanitizedName || !sanitizedEmail || !candidateForm.currentState || !candidateForm.fieldOfStudy) {
+      setError('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+
+    if (!validateEmail(sanitizedEmail)) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('waitlist_candidates')
         .insert([{
-          name: candidateForm.name,
-          email: candidateForm.email,
+          name: sanitizedName,
+          email: sanitizedEmail,
           current_state: candidateForm.currentState,
           field_of_study: candidateForm.fieldOfStudy,
-          field_description: candidateForm.fieldOfStudy === 'Other' ? candidateForm.fieldDescription : null
+          field_description: candidateForm.fieldOfStudy === 'Other' ? sanitizedDescription : null
         }]);
 
       if (error) {
@@ -77,14 +104,44 @@ const ComprehensiveWaitlistForm = () => {
     setLoading(true);
     setError('');
 
+    // Input validation and sanitization
+    const sanitizedName = sanitizeInput(employerForm.name);
+    const sanitizedEmail = employerForm.email.trim().toLowerCase();
+    const sanitizedRoleOther = employerForm.roleOther ? sanitizeInput(employerForm.roleOther) : '';
+    
+    if (!sanitizedName || !sanitizedEmail || !employerForm.role) {
+      setError('Please fill in all required fields.');
+      setLoading(false);
+      return;
+    }
+
+    if (!validateEmail(sanitizedEmail)) {
+      setError('Please enter a valid email address.');
+      setLoading(false);
+      return;
+    }
+
+    if (employerForm.role === 'Other' && !sanitizedRoleOther) {
+      setError('Please specify your role.');
+      setLoading(false);
+      return;
+    }
+
+    const earlyCareersNum = employerForm.earlyCareersPerYear ? parseInt(employerForm.earlyCareersPerYear) : null;
+    if (employerForm.earlyCareersPerYear && (isNaN(earlyCareersNum!) || earlyCareersNum! < 0)) {
+      setError('Please enter a valid number for early careers hired per year.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const { error } = await supabase
         .from('waitlist_employers')
         .insert([{
-          name: employerForm.name,
-          email: employerForm.email,
-          role: employerForm.role === 'Other' ? employerForm.roleOther : employerForm.role,
-          early_careers_per_year: employerForm.earlyCareersPerYear ? parseInt(employerForm.earlyCareersPerYear) : null
+          name: sanitizedName,
+          email: sanitizedEmail,
+          role: employerForm.role === 'Other' ? sanitizedRoleOther : employerForm.role,
+          early_careers_per_year: earlyCareersNum
         }]);
 
       if (error) {
