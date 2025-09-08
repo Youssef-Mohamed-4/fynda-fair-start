@@ -11,6 +11,11 @@ import AdminLayout from './pages/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
 import SiteSettings from './pages/admin/SiteSettings';
 import ComingSoonToggle from './pages/admin/ComingSoonToggle';
+import WaitlistManagement from './pages/admin/WaitlistManagement';
+import ContentManagement from './pages/admin/ContentManagement';
+import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
+import UserManagement from './pages/admin/UserManagement';
+import TestPage from './components/TestPage';
 
 // Enhanced Admin Protection Components
 import SecureAdminAuth from './components/admin/SecureAdminAuth';
@@ -49,6 +54,9 @@ function App() {
         <Routes>
           {/* Public Pages - No authentication required */}
           <Route path="/" element={<Home />} />
+          
+          {/* Test Route for debugging */}
+          <Route path="/test" element={<TestPage />} />
 
           {/* Admin Login Route */}
           <Route path="/login" element={<Navigate to="/admin" replace />} />
@@ -60,7 +68,11 @@ function App() {
             </SecureAdminAuth>
           }>
             <Route index element={<Dashboard />} />
+            <Route path="analytics" element={<AnalyticsDashboard />} />
+            <Route path="waitlist" element={<WaitlistManagement />} />
+            <Route path="content" element={<ContentManagement />} />
             <Route path="settings" element={<SiteSettings />} />
+            <Route path="users" element={<UserManagement />} />
             <Route path="coming-soon" element={<ComingSoonToggle />} />
             <Route path="*" element={<AdminNotFound />} />
           </Route>

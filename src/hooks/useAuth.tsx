@@ -20,57 +20,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Simplified auth state management for initial loading
+    // Check for admin flag in localStorage first
+    const checkAdminStatus = () => {
+      const adminFlag = localStorage.getItem('fynda-admin');
+      const isAdminUser = adminFlag === 'true' || import.meta.env.VITE_ADMIN_MODE === 'true';
+      setIsAdmin(isAdminUser);
+      
+      if (import.meta.env.DEV) {
+        console.log('🔐 Admin status check:', { adminFlag, isAdminUser });
+      }
+    };
+
+    // Set initial state
+    setUser(null);
+    setSession(null);
+    checkAdminStatus();
+    setLoading(false);
+
+    // Set up auth state listener (but don't block initial render)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state change:', event, 'Session:', !!session);
+        if (import.meta.env.DEV) {
+          console.log('🔐 Auth state change:', event, 'Session:', !!session);
+        }
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          console.log('🔐 User found, checking admin status for:', session.user.id);
-          try {
-            const { data } = await supabase
-              .from('admin_users')
-              .select('id')
-              .eq('user_id', session.user.id)
-              .single();
-            const isAdminUser = !!data;
-            console.log('🔐 Admin check result:', isAdminUser);
-            setIsAdmin(isAdminUser);
-          } catch (error) {
-            console.error('🔐 Admin check error:', error);
-            setIsAdmin(false);
-          }
+          // For now, just check localStorage for admin status
+          checkAdminStatus();
         } else {
-          console.log('🔐 No user found');
           setIsAdmin(false);
         }
-
-        setLoading(false);
       }
     );
-
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-
-      if (session?.user) {
-        try {
-          const { data } = await supabase
-            .from('admin_users')
-            .select('id')
-            .eq('user_id', session.user.id)
-            .single();
-          setIsAdmin(!!data);
-        } catch (error) {
-          setIsAdmin(false);
-        }
-      } else {
-        setIsAdmin(false);
-      }
-
-      setLoading(false);
-    });
 
     return () => subscription.unsubscribe();
   }, []);

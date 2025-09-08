@@ -1,4 +1,4 @@
-import { Settings, Users, BarChart, Database, Palette, Globe, LogOut } from "lucide-react"
+import { Settings, Users, BarChart, Database, Palette, Globe, LogOut, FileText, TrendingUp, UserCog } from "lucide-react"
 import { NavLink, useLocation } from "react-router-dom"
 import {
   Sidebar,
@@ -15,10 +15,11 @@ import { useAuth } from "@/hooks/useAuth"
 
 const adminItems = [
   { title: "Dashboard", url: "/admin", icon: BarChart },
+  { title: "Analytics", url: "/admin/analytics", icon: TrendingUp },
+  { title: "Waitlist Management", url: "/admin/waitlist", icon: Database },
+  { title: "Content Management", url: "/admin/content", icon: FileText },
   { title: "Site Settings", url: "/admin/settings", icon: Settings },
-  { title: "Design System", url: "/admin/design", icon: Palette },
-  { title: "Waitlist Data", url: "/admin/waitlist", icon: Database },
-  { title: "Admin Users", url: "/admin/users", icon: Users },
+  { title: "User Management", url: "/admin/users", icon: UserCog },
   { title: "Coming Soon Mode", url: "/admin/coming-soon", icon: Globe },
 ]
 

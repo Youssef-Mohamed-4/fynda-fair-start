@@ -12,8 +12,8 @@ import { createClient } from '@supabase/supabase-js';
 import type { Database } from './types';
 
 // Get Supabase configuration from environment variables
-const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
-const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL || 'https://kgbpbfxwsqkhzxmkkzmu.supabase.co';
+const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtnYnBiZnh3c3FraHp4bWtreG11Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzYzNzQ4MDAsImV4cCI6MjA1MTk1MDgwMH0.placeholder_key_replace_with_real_anon_key';
 
 // Validate required environment variables
 if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {

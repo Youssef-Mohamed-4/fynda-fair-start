@@ -9,7 +9,7 @@
  * - Environment-based admin access
  */
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -35,7 +35,7 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
   const { toast } = useToast();
 
   // Check if admin is already authenticated
-  useState(() => {
+  useEffect(() => {
     const checkAuth = async () => {
       try {
         const authenticated = isAdminAuthenticated();
