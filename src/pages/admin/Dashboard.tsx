@@ -8,7 +8,7 @@ const Dashboard = () => {
     queryKey: ['waitlist-analytics'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('waitlist_analytics')
+        .from('waitlist_analytics_secure')
         .select('*');
       if (error) throw error;
       return data;
@@ -27,27 +27,24 @@ const Dashboard = () => {
     },
   });
 
-  const candidateData = analytics?.find(row => row.type === 'candidates');
-  const employerData = analytics?.find(row => row.type === 'employers');
-
   const stats = [
     {
       title: 'Total Candidates',
-      value: candidateData?.total_count || 0,
+      value: analytics?.[0]?.total_candidates || 0,
       icon: Users,
       description: 'Registered candidates',
     },
     {
       title: 'Total Employers',
-      value: employerData?.total_count || 0,
+      value: analytics?.[0]?.total_employers || 0,
       icon: Briefcase,
       description: 'Registered employers',
     },
     {
-      title: 'Database Tables',
-      value: 4,
-      icon: Database,
-      description: 'Active tables',
+      title: 'New Candidates (30d)',
+      value: analytics?.[0]?.new_candidates_last_30d || 0,
+      icon: Users,
+      description: 'Last 30 days',
     },
     {
       title: 'Site Status',
@@ -99,34 +96,6 @@ const Dashboard = () => {
           </Card>
         ))}
       </div>
-      
-      {candidateData && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Candidate Breakdown</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold">{candidateData.final_year_count}</div>
-                <p className="text-sm text-muted-foreground">Final Year</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">{candidateData.fresh_graduate_count}</div>
-                <p className="text-sm text-muted-foreground">Fresh Graduates</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">{candidateData.early_career_count}</div>
-                <p className="text-sm text-muted-foreground">Early Career</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">{candidateData.student_count}</div>
-                <p className="text-sm text-muted-foreground">Students</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
     </div>
   );
 };

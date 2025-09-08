@@ -200,6 +200,27 @@ export type Database = {
         }
         Relationships: []
       }
+      waitlist_analytics_secure: {
+        Row: {
+          new_candidates_last_30d: number | null
+          new_employers_last_30d: number | null
+          total_candidates: number | null
+          total_employers: number | null
+        }
+        Insert: {
+          new_candidates_last_30d?: number | null
+          new_employers_last_30d?: number | null
+          total_candidates?: number | null
+          total_employers?: number | null
+        }
+        Update: {
+          new_candidates_last_30d?: number | null
+          new_employers_last_30d?: number | null
+          total_candidates?: number | null
+          total_employers?: number | null
+        }
+        Relationships: []
+      }
       waitlist_candidates: {
         Row: {
           created_at: string
@@ -259,35 +280,56 @@ export type Database = {
       }
     }
     Views: {
-      waitlist_analytics: {
+      analytics_cumulative_growth: {
         Row: {
-          computer_science_count: number | null
-          data_analytics_count: number | null
-          data_science_count: number | null
-          early_career_count: number | null
-          final_year_count: number | null
-          fresh_graduate_count: number | null
-          other_field_count: number | null
-          software_eng_count: number | null
-          student_count: number | null
-          total_count: number | null
-          type: string | null
+          cumulative_candidates: number | null
+          cumulative_employers: number | null
+          cumulative_total: number | null
+          month: string | null
+        }
+        Relationships: []
+      }
+      analytics_monthly_candidate_states: {
+        Row: {
+          count: number | null
+          current_state: string | null
+          month: string | null
+        }
+        Relationships: []
+      }
+      analytics_monthly_candidates: {
+        Row: {
+          candidate_signups: number | null
+          month: string | null
+        }
+        Relationships: []
+      }
+      analytics_monthly_employer_roles: {
+        Row: {
+          count: number | null
+          month: string | null
+          role: string | null
+        }
+        Relationships: []
+      }
+      analytics_monthly_employers: {
+        Row: {
+          employer_signups: number | null
+          month: string | null
+        }
+        Relationships: []
+      }
+      analytics_monthly_growth: {
+        Row: {
+          candidate_signups: number | null
+          employer_signups: number | null
+          month: string | null
+          total_signups: number | null
         }
         Relationships: []
       }
     }
     Functions: {
-      get_waitlist_analytics: {
-        Args: Record<PropertyKey, never>
-        Returns: {
-          early_career_count: number
-          final_year_count: number
-          fresh_graduate_count: number
-          student_count: number
-          total_count: number
-          type: string
-        }[]
-      }
       is_admin: {
         Args: { check_user_id?: string }
         Returns: boolean
