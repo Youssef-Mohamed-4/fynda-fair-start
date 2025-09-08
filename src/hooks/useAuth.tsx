@@ -22,21 +22,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔐 Auth state change:', event, 'Session:', !!session);
         setSession(session);
         setUser(session?.user ?? null);
 
         if (session?.user) {
+          console.log('🔐 User found, checking admin status for:', session.user.id);
           try {
             const { data } = await supabase
               .from('admin_users')
               .select('id')
               .eq('user_id', session.user.id)
               .single();
-            setIsAdmin(!!data);
+            const isAdminUser = !!data;
+            console.log('🔐 Admin check result:', isAdminUser);
+            setIsAdmin(isAdminUser);
           } catch (error) {
+            console.error('🔐 Admin check error:', error);
             setIsAdmin(false);
           }
         } else {
+          console.log('🔐 No user found');
           setIsAdmin(false);
         }
 

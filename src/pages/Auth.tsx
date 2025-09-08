@@ -26,26 +26,34 @@ const Auth = () => {
   }
 
   if (user) {
-    return <Navigate to={isAdmin ? "/admin" : "/"} replace />;
+    const redirectPath = isAdmin ? "/admin" : "/";
+    console.log('🔐 User authenticated, redirecting to:', redirectPath, 'isAdmin:', isAdmin);
+    return <Navigate to={redirectPath} replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
+    
+    console.log('🔐 Login attempt started with email:', email);
 
     try {
       const result = await signIn(email, password);
+      console.log('🔐 Login result:', result);
 
       if (result.error) {
+        console.error('🔐 Login error:', result.error.message);
         setError(result.error.message);
       } else {
+        console.log('🔐 Login successful, should redirect now');
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
       }
     } catch (err: any) {
+      console.error('🔐 Login exception:', err.message);
       setError(err.message);
     } finally {
       setLoading(false);
