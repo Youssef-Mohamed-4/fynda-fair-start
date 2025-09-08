@@ -1,54 +1,61 @@
 import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Users, Briefcase, Database, Globe } from 'lucide-react';
+import { getAdminData } from '@/lib/api-client';
 
 const Dashboard = () => {
-  const { data: analytics, isLoading } = useQuery({
-    queryKey: ['waitlist-analytics'],
+  // Fetch admin data via secure API endpoint
+  const { data: adminData, isLoading, error } = useQuery({
+    queryKey: ['admin-data'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('waitlist_analytics_secure')
-        .select('*');
-      if (error) throw error;
-      return data;
+      return await getAdminData();
     },
+    retry: 1, // Only retry once for auth errors
+    refetchOnWindowFocus: false,
   });
 
-  const { data: siteSettings } = useQuery({
-    queryKey: ['site-settings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
-      if (error) throw error;
-      return data;
-    },
-  });
+  // Handle authentication errors
+  if (error && error.message.includes('Authentication expired')) {
+    return (
+      <div className="space-y-6">
+        <div className="text-center py-12">
+          <h2 className="text-2xl font-bold text-destructive mb-4">Authentication Expired</h2>
+          <p className="text-muted-foreground mb-4">
+            Your admin session has expired. Please log in again.
+          </p>
+          <button 
+            onClick={() => window.location.href = '/login'}
+            className="bg-primary text-primary-foreground px-4 py-2 rounded-md hover:bg-primary/90"
+          >
+            Go to Login
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const stats = [
     {
       title: 'Total Candidates',
-      value: analytics?.[0]?.total_candidates || 0,
+      value: adminData?.analytics?.total_candidates || 0,
       icon: Users,
       description: 'Registered candidates',
     },
     {
       title: 'Total Employers',
-      value: analytics?.[0]?.total_employers || 0,
+      value: adminData?.analytics?.total_employers || 0,
       icon: Briefcase,
       description: 'Registered employers',
     },
     {
       title: 'New Candidates (30d)',
-      value: analytics?.[0]?.new_candidates_last_30d || 0,
+      value: adminData?.analytics?.new_candidates_last_30d || 0,
       icon: Users,
       description: 'Last 30 days',
     },
     {
       title: 'Site Status',
-      value: siteSettings?.coming_soon_mode ? 'Coming Soon' : 'Live',
+      value: adminData?.siteSettings?.coming_soon_mode ? 'Coming Soon' : 'Live',
       icon: Globe,
       description: 'Current mode',
     },

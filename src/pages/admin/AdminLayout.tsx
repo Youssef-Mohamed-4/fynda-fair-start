@@ -1,56 +1,13 @@
 import { SidebarProvider } from "@/components/ui/sidebar";
 import { AdminSidebar } from "@/components/admin/AdminSidebar";
-import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/hooks/use-toast";
+import { Outlet } from "react-router-dom";
 
 export default function AdminLayout() {
-  const navigate = useNavigate();
-  const { toast } = useToast();
-  const [loading, setLoading] = useState(true);
+  // Debug logging for admin layout rendering
+  console.log('🔐 AdminLayout: Rendering admin layout (authentication already handled by AdminProtected)');
 
-  useEffect(() => {
-    const checkAdmin = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-
-      if (!user) {
-        setLoading(false);
-        return;
-      }
-
-      const { data: isAdmin, error } = await supabase.rpc("is_admin");
-
-      if (error) {
-        console.error("Admin check failed:", error.message);
-        setLoading(false);
-        return;
-      }
-
-      if (!isAdmin) {
-        toast({
-          title: "Access Denied",
-          description: "You are not an admin and cannot access this page.",
-          variant: "destructive",
-        });
-        navigate("/");
-      } else {
-        setLoading(false);
-      }
-    };
-
-    checkAdmin();
-  }, [navigate, toast]);
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-lg font-semibold text-muted-foreground">
-          Checking admin access...
-        </p>
-      </div>
-    );
-  }
+  // Note: Authentication is now handled by AdminProtected component
+  // No need for duplicate auth checks here
 
   return (
     <SidebarProvider>

@@ -7,9 +7,17 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { CheckCircle, Users, Building2 } from "lucide-react";
+import { 
+  sanitizeInput, 
+  validateEmail, 
+  checkRateLimit, 
+  validateName, 
+  logSecurityEvent,
+  ADMIN_CONFIG 
+} from "@/utils/security";
+import { submitWaitlistEntry } from "@/lib/api-client";
 
 const ComprehensiveWaitlistForm = () => {
   const [activeTab, setActiveTab] = useState<'candidate' | 'employer'>('candidate');
@@ -36,14 +44,12 @@ const ComprehensiveWaitlistForm = () => {
     earlyCareersPerYear: ''
   });
 
-  // Input sanitization helper
-  const sanitizeInput = (input: string) => {
-    return input.trim().replace(/[<>]/g, '').substring(0, 500);
-  };
-
-  const validateEmail = (email: string) => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
+  // Security logging for form interactions
+  const logFormEvent = (event: string, details?: any) => {
+    logSecurityEvent(`waitlist_form_${event}`, {
+      tab: activeTab,
+      ...details
+    });
   };
 
   const handleCandidateSubmit = async (e: React.FormEvent) => {
@@ -51,49 +57,70 @@ const ComprehensiveWaitlistForm = () => {
     setLoading(true);
     setError('');
 
+    // Log form submission attempt
+    logFormEvent('submission_attempt', { type: 'candidate' });
+
+    // Rate limiting check
+    if (!checkRateLimit('waitlist-submission', ADMIN_CONFIG.RATE_LIMIT.WAITLIST_SUBMISSION)) {
+      setError('Please wait a moment before submitting again.');
+      setLoading(false);
+      logFormEvent('rate_limit_exceeded', { type: 'candidate' });
+      return;
+    }
+
     // Input validation and sanitization
     const sanitizedName = sanitizeInput(candidateForm.name);
     const sanitizedEmail = candidateForm.email.trim().toLowerCase();
     const sanitizedDescription = candidateForm.fieldDescription ? sanitizeInput(candidateForm.fieldDescription) : '';
 
-    if (!sanitizedName || !sanitizedEmail || !candidateForm.currentState || !candidateForm.fieldOfStudy) {
+    // Validate name using security utilities
+    const nameValidation = validateName(sanitizedName);
+    if (!nameValidation.isValid) {
+      setError(nameValidation.error || 'Invalid name');
+      setLoading(false);
+      logFormEvent('validation_error', { type: 'candidate', field: 'name', error: nameValidation.error });
+      return;
+    }
+
+    if (!sanitizedEmail || !candidateForm.currentState || !candidateForm.fieldOfStudy) {
       setError('Please fill in all required fields.');
       setLoading(false);
+      logFormEvent('validation_error', { type: 'candidate', field: 'required_fields' });
       return;
     }
 
     if (!validateEmail(sanitizedEmail)) {
       setError('Please enter a valid email address.');
       setLoading(false);
+      logFormEvent('validation_error', { type: 'candidate', field: 'email' });
       return;
     }
 
     try {
-      const { error } = await supabase
-        .from('waitlist_candidates')
-        .insert([{
-          name: sanitizedName,
-          email: sanitizedEmail,
-          current_state: candidateForm.currentState,
-          field_of_study: candidateForm.fieldOfStudy,
-          field_description: candidateForm.fieldOfStudy === 'Other' ? sanitizedDescription : null
-        }]);
+      // Submit via secure API endpoint
+      const result = await submitWaitlistEntry('candidate', {
+        name: sanitizedName,
+        email: sanitizedEmail,
+        currentState: candidateForm.currentState,
+        fieldOfStudy: candidateForm.fieldOfStudy,
+        fieldDescription: candidateForm.fieldOfStudy === 'Other' ? sanitizedDescription : null
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          setError('This email is already registered in our candidate waitlist!');
-        } else {
-          setError(error.message);
-        }
-      } else {
-        setSuccess('candidate');
-        toast({
-          title: "Welcome to our candidate waitlist!",
-          description: "We'll be in touch when opportunities arise.",
-        });
-      }
+      setSuccess('candidate');
+      logFormEvent('success', { type: 'candidate', email: sanitizedEmail });
+      toast({
+        title: "Welcome to our candidate waitlist!",
+        description: "We'll be in touch when opportunities arise.",
+      });
     } catch (err: any) {
-      setError('Something went wrong. Please try again.');
+      const errorMessage = err.message || 'Something went wrong. Please try again.';
+      setError(errorMessage);
+      
+      if (errorMessage.includes('already registered')) {
+        logFormEvent('duplicate_email', { type: 'candidate', email: sanitizedEmail });
+      } else {
+        logFormEvent('api_error', { type: 'candidate', error: errorMessage });
+      }
     } finally {
       setLoading(false);
     }
@@ -135,30 +162,30 @@ const ComprehensiveWaitlistForm = () => {
     }
 
     try {
-      const { error } = await supabase
-        .from('waitlist_employers')
-        .insert([{
-          name: sanitizedName,
-          email: sanitizedEmail,
-          role: employerForm.role === 'Other' ? sanitizedRoleOther : employerForm.role,
-          early_careers_per_year: earlyCareersNum
-        }]);
+      // Submit via secure API endpoint
+      const result = await submitWaitlistEntry('employer', {
+        name: sanitizedName,
+        email: sanitizedEmail,
+        role: employerForm.role === 'Other' ? sanitizedRoleOther : employerForm.role,
+        roleOther: employerForm.role === 'Other' ? sanitizedRoleOther : null,
+        earlyCareersPerYear: earlyCareersNum
+      });
 
-      if (error) {
-        if (error.code === '23505') {
-          setError('This email is already registered in our employer waitlist!');
-        } else {
-          setError(error.message);
-        }
-      } else {
-        setSuccess('employer');
-        toast({
-          title: "Welcome to our employer waitlist!",
-          description: "We'll reach out to discuss partnership opportunities.",
-        });
-      }
+      setSuccess('employer');
+      logFormEvent('success', { type: 'employer', email: sanitizedEmail });
+      toast({
+        title: "Welcome to our employer waitlist!",
+        description: "We'll reach out to discuss partnership opportunities.",
+      });
     } catch (err: any) {
-      setError('Something went wrong. Please try again.');
+      const errorMessage = err.message || 'Something went wrong. Please try again.';
+      setError(errorMessage);
+      
+      if (errorMessage.includes('already registered')) {
+        logFormEvent('duplicate_email', { type: 'employer', email: sanitizedEmail });
+      } else {
+        logFormEvent('api_error', { type: 'employer', error: errorMessage });
+      }
     } finally {
       setLoading(false);
     }
