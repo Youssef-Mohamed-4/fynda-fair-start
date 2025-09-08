@@ -52,9 +52,10 @@ const Auth = () => {
           description: "You have been successfully logged in.",
         });
       }
-    } catch (err: any) {
-      console.error('🔐 Login exception:', err.message);
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Login failed';
+      console.error('🔐 Login exception:', errorMessage);
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }

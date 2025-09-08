@@ -27,7 +27,7 @@ const SiteSettings = () => {
   });
 
   const updateSettings = useMutation({
-    mutationFn: async (newSettings: any) => {
+    mutationFn: async (newSettings: Record<string, unknown>) => {
       if (!settings) return;
       const { error } = await supabase
         .from('site_settings')

@@ -45,7 +45,7 @@ const ComprehensiveWaitlistForm = () => {
   });
 
   // Security logging for form interactions
-  const logFormEvent = (event: string, details?: any) => {
+  const logFormEvent = (event: string, details?: Record<string, unknown>) => {
     logSecurityEvent(`waitlist_form_${event}`, {
       tab: activeTab,
       ...details
@@ -112,8 +112,8 @@ const ComprehensiveWaitlistForm = () => {
         title: "Welcome to our candidate waitlist!",
         description: "We'll be in touch when opportunities arise.",
       });
-    } catch (err: any) {
-      const errorMessage = err.message || 'Something went wrong. Please try again.';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       setError(errorMessage);
       
       if (errorMessage.includes('already registered')) {
@@ -177,8 +177,8 @@ const ComprehensiveWaitlistForm = () => {
         title: "Welcome to our employer waitlist!",
         description: "We'll reach out to discuss partnership opportunities.",
       });
-    } catch (err: any) {
-      const errorMessage = err.message || 'Something went wrong. Please try again.';
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
       setError(errorMessage);
       
       if (errorMessage.includes('already registered')) {

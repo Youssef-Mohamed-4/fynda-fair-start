@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button";
 const HeroSection = () => {
-  return <section className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20">
+  return (
+    <section 
+      className="min-h-screen flex items-center justify-center relative overflow-hidden pt-20"
+      aria-labelledby="hero-heading"
+    >
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-subtle opacity-30"></div>
       
@@ -8,7 +12,7 @@ const HeroSection = () => {
         <div className="max-w-4xl mx-auto text-center">
           <div className="space-y-8 animate-fade-in">
             <div className="space-y-6">
-              <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
+              <h1 id="hero-heading" className="text-5xl md:text-6xl lg:text-7xl font-bold text-foreground leading-tight">
                 Fair AI Hiring 
                 <span className="bg-gradient-hero bg-clip-text text-transparent">for Early Careers</span>
               </h1>
@@ -50,6 +54,7 @@ const HeroSection = () => {
           </div>
         </div>
       </div>
-    </section>;
+    </section>
+  );
 };
 export default HeroSection;

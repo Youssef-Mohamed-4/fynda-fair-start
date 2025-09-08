@@ -42,10 +42,14 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
         setIsAuthenticated(authenticated);
         
         if (authenticated) {
-          console.log('🔐 SecureAdminAuth: Admin already authenticated');
+          if (import.meta.env.DEV) {
+            console.log('🔐 SecureAdminAuth: Admin already authenticated');
+          }
           logSecurityEvent('admin_auth_check', { status: 'authenticated' });
         } else {
-          console.log('🔐 SecureAdminAuth: Admin not authenticated');
+          if (import.meta.env.DEV) {
+            console.log('🔐 SecureAdminAuth: Admin not authenticated');
+          }
           logSecurityEvent('admin_auth_check', { status: 'not_authenticated' });
         }
       } catch (error) {
@@ -64,13 +68,17 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
     setLoading(true);
     setError('');
     
-    console.log('🔐 SecureAdminAuth: Login attempt started');
+    if (import.meta.env.DEV) {
+      console.log('🔐 SecureAdminAuth: Login attempt started');
+    }
     logSecurityEvent('admin_login_attempt', { email });
 
     try {
       const result = await authenticateAdmin(email, password);
       
-      console.log('🔐 SecureAdminAuth: Login successful');
+      if (import.meta.env.DEV) {
+        console.log('🔐 SecureAdminAuth: Login successful');
+      }
       logSecurityEvent('admin_login_success', { email });
       
       setIsAuthenticated(true);
@@ -78,18 +86,21 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
         title: "Welcome back!",
         description: "You have been successfully logged in.",
       });
-    } catch (err: any) {
-      console.error('🔐 SecureAdminAuth: Login error:', err.message);
-      logSecurityEvent('admin_login_failed', { email, error: err.message });
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      console.error('🔐 SecureAdminAuth: Login error:', errorMessage);
+      logSecurityEvent('admin_login_failed', { email, error: errorMessage });
       
-      setError(err.message || 'Authentication failed');
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const handleLogout = () => {
-    console.log('🔐 SecureAdminAuth: Logout initiated');
+    if (import.meta.env.DEV) {
+      console.log('🔐 SecureAdminAuth: Logout initiated');
+    }
     logSecurityEvent('admin_logout', {});
     
     logoutAdmin();

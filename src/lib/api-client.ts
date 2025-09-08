@@ -17,7 +17,26 @@ const API_BASE_URL = process.env.NODE_ENV === 'production'
 /**
  * Secure waitlist submission
  */
-export const submitWaitlistEntry = async (type: 'candidate' | 'employer', data: any) => {
+interface WaitlistCandidateData {
+  name: string;
+  email: string;
+  currentState: string;
+  fieldOfStudy: string;
+  fieldDescription?: string;
+}
+
+interface WaitlistEmployerData {
+  name: string;
+  email: string;
+  role: string;
+  roleOther?: string;
+  earlyCareersPerYear?: number;
+}
+
+export const submitWaitlistEntry = async (
+  type: 'candidate' | 'employer', 
+  data: WaitlistCandidateData | WaitlistEmployerData
+) => {
   try {
     const response = await fetch(`${API_BASE_URL}/waitlist`, {
       method: 'POST',

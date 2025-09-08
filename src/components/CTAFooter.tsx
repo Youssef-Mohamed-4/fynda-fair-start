@@ -23,8 +23,9 @@ const CTAFooter = () => {
           <div className="flex justify-center items-center space-x-4 mb-8">
             <img 
               src={fyndaLogo} 
-              alt="Fynda logo"
+              alt="Fynda logo - geometric symbol representing fair hiring and connection"
               className="w-12 h-12 opacity-80 animate-float"
+              loading="lazy"
             />
             <span className="text-3xl font-bold">Fynda</span>
           </div>

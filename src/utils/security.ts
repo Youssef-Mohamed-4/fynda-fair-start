@@ -158,7 +158,7 @@ export const checkRateLimit = (key: string, limit: number): boolean => {
  * @param event - Security event to log
  * @param details - Additional details
  */
-export const logSecurityEvent = (event: string, details?: any): void => {
+export const logSecurityEvent = (event: string, details?: Record<string, unknown>): void => {
   const logEntry = {
     event,
     details,

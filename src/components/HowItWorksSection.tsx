@@ -23,10 +23,10 @@ const HowItWorksSection = () => {
   ];
 
   return (
-    <section id="how-it-works" className="py-24 bg-background">
+    <section id="how-it-works" className="py-24 bg-background" aria-labelledby="how-it-works-heading">
       <div className="container mx-auto px-6">
         <div className="max-w-4xl mx-auto text-center mb-16">
-          <h2 className="text-4xl md:text-5xl font-bold text-foreground mb-6">
+          <h2 id="how-it-works-heading" className="text-4xl md:text-5xl font-bold text-foreground mb-6">
             How It <span className="bg-gradient-hero bg-clip-text text-transparent">Works</span>
           </h2>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
@@ -46,8 +46,9 @@ const HowItWorksSection = () => {
                 <div className="w-20 h-20 mx-auto bg-gradient-subtle rounded-2xl flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-300">
                   <img 
                     src={fyndaLogo} 
-                    alt={`Step ${step.number} icon`}
+                    alt={`Fynda logo representing ${step.title.toLowerCase()}`}
                     className="w-10 h-10 opacity-80"
+                    loading="lazy"
                   />
                 </div>
                 <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-hero rounded-full flex items-center justify-center text-white text-sm font-bold">

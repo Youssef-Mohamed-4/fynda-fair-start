@@ -13,8 +13,6 @@ import SiteSettings from './pages/admin/SiteSettings';
 import ComingSoonToggle from './pages/admin/ComingSoonToggle';
 
 // Enhanced Admin Protection Components
-import AdminRoute from './components/admin/AdminRoute';
-import AdminProtected from './components/admin/AdminProtected';
 import SecureAdminAuth from './components/admin/SecureAdminAuth';
 
 /**
@@ -34,13 +32,15 @@ import SecureAdminAuth from './components/admin/SecureAdminAuth';
  * - Rate limiting and input sanitization
  */
 function App() {
-  // Debug logging for app routing and security
-  console.log('🔐 App: Initializing enhanced routing with multi-layer security protection');
-  console.log('🔐 App: Admin protection methods available:', {
-    localStorage: 'fynda-admin flag',
-    environment: 'VITE_ADMIN_MODE variable',
-    database: 'admin_users table check'
-  });
+  // Debug logging for app routing and security (development only)
+  if (import.meta.env.DEV) {
+    console.log('🔐 App: Initializing enhanced routing with multi-layer security protection');
+    console.log('🔐 App: Admin protection methods available:', {
+      localStorage: 'fynda-admin flag',
+      environment: 'VITE_ADMIN_MODE variable',
+      database: 'admin_users table check'
+    });
+  }
 
   return (
     <>

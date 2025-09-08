@@ -32,7 +32,7 @@ const Header = () => {
           </div>
 
           {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center space-x-8">
+          <nav className="hidden md:flex items-center space-x-8" role="navigation" aria-label="Main navigation">
             {isAdmin && (
               <Link 
                 to="/admin" 
@@ -55,6 +55,9 @@ const Header = () => {
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+            aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMenuOpen}
+            aria-controls="mobile-navigation"
           >
             {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
           </button>
@@ -62,8 +65,8 @@ const Header = () => {
 
         {/* Mobile Navigation */}
         {isMenuOpen && (
-          <div className="md:hidden py-4 border-t border-border/40">
-            <nav className="flex flex-col space-y-4">
+          <div id="mobile-navigation" className="md:hidden py-4 border-t border-border/40">
+            <nav className="flex flex-col space-y-4" role="navigation" aria-label="Mobile navigation">
               {isAdmin && (
                 <Link 
                   to="/admin" 
