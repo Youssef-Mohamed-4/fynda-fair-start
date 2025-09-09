@@ -76,7 +76,7 @@ export const checkAdminStatus = (): void => {
 export const setupDevelopmentHelpers = (): void => {
   if (import.meta.env.DEV) {
     // Make admin functions available in browser console
-    (window as Record<string, unknown>).fyndaAdmin = {
+    (window as any).fyndaAdmin = {
       enable: enableAdminAccess,
       disable: disableAdminAccess,
       status: checkAdminStatus,

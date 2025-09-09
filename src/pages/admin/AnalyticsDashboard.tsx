@@ -168,7 +168,7 @@ const AnalyticsDashboard = () => {
           <CardContent>
             <div className="text-2xl font-bold">{analyticsData?.totalSignups || 0}</div>
             <p className="text-xs text-muted-foreground">
-              +{analyticsData?.newCandidatesLast30Days + analyticsData?.newEmployersLast30Days || 0} this month
+              +{(analyticsData?.newCandidatesLast30Days || 0) + (analyticsData?.newEmployersLast30Days || 0)} this month
             </p>
           </CardContent>
         </Card>
@@ -206,8 +206,8 @@ const AnalyticsDashboard = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {analyticsData?.totalSignups > 0 ? 
-                Math.round(((analyticsData?.newCandidatesLast30Days + analyticsData?.newEmployersLast30Days) / analyticsData?.totalSignups) * 100) : 0}%
+              {(analyticsData?.totalSignups || 0) > 0 ? 
+                Math.round((((analyticsData?.newCandidatesLast30Days || 0) + (analyticsData?.newEmployersLast30Days || 0)) / (analyticsData?.totalSignups || 1)) * 100) : 0}%
             </div>
             <p className="text-xs text-muted-foreground">Monthly growth</p>
           </CardContent>

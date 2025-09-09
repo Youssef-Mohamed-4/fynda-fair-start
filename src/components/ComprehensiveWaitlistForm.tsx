@@ -103,7 +103,7 @@ const ComprehensiveWaitlistForm = () => {
         email: sanitizedEmail,
         currentState: candidateForm.currentState,
         fieldOfStudy: candidateForm.fieldOfStudy,
-        fieldDescription: candidateForm.fieldOfStudy === 'Other' ? sanitizedDescription : null
+        fieldDescription: candidateForm.fieldOfStudy === 'Other' ? sanitizedDescription : undefined
       });
 
       setSuccess('candidate');
@@ -167,8 +167,8 @@ const ComprehensiveWaitlistForm = () => {
         name: sanitizedName,
         email: sanitizedEmail,
         role: employerForm.role === 'Other' ? sanitizedRoleOther : employerForm.role,
-        roleOther: employerForm.role === 'Other' ? sanitizedRoleOther : null,
-        earlyCareersPerYear: earlyCareersNum
+        roleOther: employerForm.role === 'Other' ? sanitizedRoleOther : undefined,
+        earlyCareersPerYear: earlyCareersNum || undefined
       });
 
       setSuccess('employer');

@@ -37,27 +37,32 @@ const Dashboard = () => {
   const stats = [
     {
       title: 'Total Candidates',
-      value: adminData?.analytics?.total_candidates || 0,
+      value: adminData?.candidates?.length || 0,
       icon: Users,
       description: 'Registered candidates',
     },
     {
       title: 'Total Employers',
-      value: adminData?.analytics?.total_employers || 0,
+      value: adminData?.employers?.length || 0,
       icon: Briefcase,
       description: 'Registered employers',
     },
     {
       title: 'New Candidates (30d)',
-      value: adminData?.analytics?.new_candidates_last_30d || 0,
+      value: adminData?.candidates?.filter((c: any) => {
+        const created = new Date(c.created_at);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        return created >= thirtyDaysAgo;
+      }).length || 0,
       icon: Users,
       description: 'Last 30 days',
     },
     {
-      title: 'Site Status',
-      value: adminData?.siteSettings?.coming_soon_mode ? 'Coming Soon' : 'Live',
-      icon: Globe,
-      description: 'Current mode',
+      title: 'Total Signups',
+      value: (adminData?.candidates?.length || 0) + (adminData?.employers?.length || 0),
+      icon: Database,
+      description: 'All time',
     },
   ];
 

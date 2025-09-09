@@ -16,71 +16,54 @@ const ContentManagement = () => {
   const queryClient = useQueryClient();
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Fetch content data
-  const { data: contentData, isLoading } = useQuery({
-    queryKey: ['content-data'],
+  // Fetch content data from site_settings
+  const { data: content, isLoading } = useQuery({
+    queryKey: ['site_settings'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('site_content')
+        .from('site_settings')
         .select('*')
         .single();
-      
-      if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
+
+      if (error) {
+        console.error('Error fetching site settings:', error);
         throw error;
       }
-      
-      // Return default content if no data exists
-      return data || {
-        hero_title: "Fair AI Hiring for Early Careers",
-        hero_subtitle: "Everyone deserves an interview. Fynda makes it happen with AI-powered fairness.",
-        hero_cta_primary: "Join the Waitlist",
-        hero_cta_secondary: "How It Works",
-        how_it_works_title: "How It Works",
-        how_it_works_subtitle: "Our simple process ensures every candidate gets a fair chance",
-        why_fynda_title: "Why Choose Fynda?",
-        why_fynda_subtitle: "We're building the future of fair hiring",
-        social_proof_title: "Trusted by Leading Companies",
-        social_proof_subtitle: "Join thousands of companies already using Fynda",
-        cta_footer_title: "Ready to Transform Your Hiring?",
-        cta_footer_subtitle: "Join the waitlist and be among the first to experience fair AI hiring",
-        cta_footer_button: "Get Early Access",
-        meta_title: "Fynda - Fair AI Hiring for Early Careers",
-        meta_description: "Everyone deserves an interview. Fynda makes it happen with AI-powered fairness. Connect young talent with opportunity through fair hiring.",
-        meta_keywords: "AI hiring, early careers, fair recruitment, no CV, AI interviews, young talent, job opportunities, equal opportunity"
-      };
+      return data;
     },
   });
 
-  // Update content mutation
   const updateContent = useMutation({
-    mutationFn: async (newContent: Record<string, unknown>) => {
-      if (contentData?.id) {
-        // Update existing content
-        const { error } = await supabase
-          .from('site_content')
-          .update(newContent)
-          .eq('id', contentData.id);
-        if (error) throw error;
-      } else {
-        // Insert new content
-        const { error } = await supabase
-          .from('site_content')
-          .insert([newContent]);
-        if (error) throw error;
+    mutationFn: async (updates: Record<string, string>) => {
+      const { error } = await supabase
+        .from('site_settings')
+        .update(updates)
+        .eq('id', content?.id || '');
+
+      if (error) {
+        console.error('Error updating site settings:', error);
+        throw error;
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['content-data'] });
-      queryClient.invalidateQueries({ queryKey: ['site-settings'] }); // Also refresh site settings
+      queryClient.invalidateQueries({ queryKey: ['site_settings'] });
       toast({
-        title: "Content updated!",
-        description: "Your content changes have been saved successfully.",
+        title: "Settings updated successfully",
+        description: "The website settings have been updated.",
+      });
+    },
+    onError: (error) => {
+      console.error('Settings update error:', error);
+      toast({
+        variant: "destructive",
+        title: "Error updating settings",
+        description: "There was an error updating the website settings.",
       });
     },
   });
 
   const handleSave = (section: string, data: Record<string, string>) => {
-    updateContent.mutate({ ...contentData, ...data });
+    updateContent.mutate(data);
   };
 
   if (isLoading) {
@@ -113,188 +96,87 @@ const ContentManagement = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="hero" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="hero">Hero Section</TabsTrigger>
-          <TabsTrigger value="how-it-works">How It Works</TabsTrigger>
-          <TabsTrigger value="why-fynda">Why Fynda</TabsTrigger>
-          <TabsTrigger value="seo">SEO & Meta</TabsTrigger>
+      <Tabs defaultValue="site" className="space-y-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="site">Site Settings</TabsTrigger>
+          <TabsTrigger value="colors">Colors & Theme</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="hero">
+        <TabsContent value="site">
           <Card>
             <CardHeader>
-              <CardTitle>Hero Section Content</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hero_title">Main Title</Label>
-                  <Input
-                    id="hero_title"
-                    value={contentData?.hero_title || ''}
-                    onChange={(e) => {
-                      const newData = { ...contentData, hero_title: e.target.value };
-                      handleSave('hero', newData);
-                    }}
-                    placeholder="Fair AI Hiring for Early Careers"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hero_subtitle">Subtitle</Label>
-                  <Textarea
-                    id="hero_subtitle"
-                    value={contentData?.hero_subtitle || ''}
-                    onChange={(e) => {
-                      const newData = { ...contentData, hero_subtitle: e.target.value };
-                      handleSave('hero', newData);
-                    }}
-                    placeholder="Everyone deserves an interview..."
-                    rows={3}
-                  />
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="hero_cta_primary">Primary CTA Button</Label>
-                  <Input
-                    id="hero_cta_primary"
-                    value={contentData?.hero_cta_primary || ''}
-                    onChange={(e) => {
-                      const newData = { ...contentData, hero_cta_primary: e.target.value };
-                      handleSave('hero', newData);
-                    }}
-                    placeholder="Join the Waitlist"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="hero_cta_secondary">Secondary CTA Button</Label>
-                  <Input
-                    id="hero_cta_secondary"
-                    value={contentData?.hero_cta_secondary || ''}
-                    onChange={(e) => {
-                      const newData = { ...contentData, hero_cta_secondary: e.target.value };
-                      handleSave('hero', newData);
-                    }}
-                    placeholder="How It Works"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="how-it-works">
-          <Card>
-            <CardHeader>
-              <CardTitle>How It Works Section</CardTitle>
+              <CardTitle>Site Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="how_it_works_title">Section Title</Label>
+                <Label htmlFor="site_title">Site Title</Label>
                 <Input
-                  id="how_it_works_title"
-                  value={contentData?.how_it_works_title || ''}
+                  value={content?.site_title || ''}
                   onChange={(e) => {
-                    const newData = { ...contentData, how_it_works_title: e.target.value };
-                    handleSave('how-it-works', newData);
+                    handleSave('site', { site_title: e.target.value });
                   }}
-                  placeholder="How It Works"
+                  placeholder="Enter site title"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="how_it_works_subtitle">Section Subtitle</Label>
+                <Label htmlFor="site_description">Site Description</Label>
                 <Textarea
-                  id="how_it_works_subtitle"
-                  value={contentData?.how_it_works_subtitle || ''}
+                  value={content?.site_description || ''}
                   onChange={(e) => {
-                    const newData = { ...contentData, how_it_works_subtitle: e.target.value };
-                    handleSave('how-it-works', newData);
+                    handleSave('site', { site_description: e.target.value });
                   }}
-                  placeholder="Our simple process ensures every candidate gets a fair chance"
+                  placeholder="Enter site description"
                   rows={3}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="logo_url">Logo URL</Label>
+                <Input
+                  value={content?.logo_url || ''}
+                  onChange={(e) => {
+                    handleSave('site', { logo_url: e.target.value });
+                  }}
+                  placeholder="Enter logo URL"
                 />
               </div>
             </CardContent>
           </Card>
         </TabsContent>
 
-        <TabsContent value="why-fynda">
+        <TabsContent value="colors">
           <Card>
             <CardHeader>
-              <CardTitle>Why Fynda Section</CardTitle>
+              <CardTitle>Color Scheme</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="why_fynda_title">Section Title</Label>
+                <Label htmlFor="primary_color">Primary Color (HSL)</Label>
                 <Input
-                  id="why_fynda_title"
-                  value={contentData?.why_fynda_title || ''}
+                  value={content?.primary_color || ''}
                   onChange={(e) => {
-                    const newData = { ...contentData, why_fynda_title: e.target.value };
-                    handleSave('why-fynda', newData);
+                    handleSave('colors', { primary_color: e.target.value });
                   }}
-                  placeholder="Why Choose Fynda?"
+                  placeholder="213 85% 15%"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="why_fynda_subtitle">Section Subtitle</Label>
-                <Textarea
-                  id="why_fynda_subtitle"
-                  value={contentData?.why_fynda_subtitle || ''}
-                  onChange={(e) => {
-                    const newData = { ...contentData, why_fynda_subtitle: e.target.value };
-                    handleSave('why-fynda', newData);
-                  }}
-                  placeholder="We're building the future of fair hiring"
-                  rows={3}
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="seo">
-          <Card>
-            <CardHeader>
-              <CardTitle>SEO & Meta Tags</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="meta_title">Page Title</Label>
+                <Label htmlFor="secondary_color">Secondary Color (HSL)</Label>
                 <Input
-                  id="meta_title"
-                  value={contentData?.meta_title || ''}
+                  value={content?.secondary_color || ''}
                   onChange={(e) => {
-                    const newData = { ...contentData, meta_title: e.target.value };
-                    handleSave('seo', newData);
+                    handleSave('colors', { secondary_color: e.target.value });
                   }}
-                  placeholder="Fynda - Fair AI Hiring for Early Careers"
+                  placeholder="213 100% 96%"
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="meta_description">Meta Description</Label>
-                <Textarea
-                  id="meta_description"
-                  value={contentData?.meta_description || ''}
-                  onChange={(e) => {
-                    const newData = { ...contentData, meta_description: e.target.value };
-                    handleSave('seo', newData);
-                  }}
-                  placeholder="Everyone deserves an interview. Fynda makes it happen with AI-powered fairness..."
-                  rows={3}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="meta_keywords">Meta Keywords</Label>
+                <Label htmlFor="accent_color">Accent Color (HSL)</Label>
                 <Input
-                  id="meta_keywords"
-                  value={contentData?.meta_keywords || ''}
+                  value={content?.accent_color || ''}
                   onChange={(e) => {
-                    const newData = { ...contentData, meta_keywords: e.target.value };
-                    handleSave('seo', newData);
+                    handleSave('colors', { accent_color: e.target.value });
                   }}
-                  placeholder="AI hiring, early careers, fair recruitment..."
+                  placeholder="213 85% 60%"
                 />
               </div>
             </CardContent>
@@ -310,11 +192,11 @@ const ContentManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="border rounded-lg p-4 bg-muted/20">
-              <h1 className="text-2xl font-bold mb-2">{contentData?.hero_title}</h1>
-              <p className="text-muted-foreground mb-4">{contentData?.hero_subtitle}</p>
+              <h1 className="text-2xl font-bold mb-2">{content?.site_title}</h1>
+              <p className="text-muted-foreground mb-4">{content?.site_description}</p>
               <div className="flex gap-2">
-                <Button>{contentData?.hero_cta_primary}</Button>
-                <Button variant="outline">{contentData?.hero_cta_secondary}</Button>
+                <Button>Primary Button</Button>
+                <Button variant="outline">Secondary Button</Button>
               </div>
             </div>
           </CardContent>

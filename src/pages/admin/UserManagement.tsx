@@ -13,11 +13,8 @@ import {
   UserPlus, 
   Mail, 
   Trash2, 
-  Edit, 
   Shield, 
-  ShieldOff,
   Search,
-  Filter
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,25 +23,16 @@ const UserManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddUserOpen, setIsAddUserOpen] = useState(false);
   const [newUserEmail, setNewUserEmail] = useState('');
-  const [newUserPassword, setNewUserPassword] = useState('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch admin users
+  // Fetch admin users - simplified query
   const { data: adminUsers, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('admin_users')
-        .select(`
-          *,
-          user:user_id (
-            id,
-            email,
-            created_at,
-            last_sign_in_at
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -52,32 +40,22 @@ const UserManagement = () => {
     },
   });
 
-  // Add new admin user
+  // Add new admin user - simplified
   const addAdminUser = useMutation({
-    mutationFn: async ({ email, password }: { email: string; password: string }) => {
-      // First create the user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-      });
-
-      if (authError) throw authError;
-      if (!authData.user) throw new Error('Failed to create user');
-
-      // Then add to admin_users table
-      const { error: adminError } = await supabase
+    mutationFn: async ({ email }: { email: string }) => {
+      // Add to admin_users table
+      const { error } = await supabase
         .from('admin_users')
-        .insert([{ user_id: authData.user.id }]);
+        .insert([{ email, is_super_admin: false }]);
 
-      if (adminError) throw adminError;
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       setIsAddUserOpen(false);
       setNewUserEmail('');
-      setNewUserPassword('');
       toast({
-        title: "Admin user created!",
+        title: "Admin user added!",
         description: "The new admin user has been added successfully.",
       });
     },
@@ -85,11 +63,11 @@ const UserManagement = () => {
 
   // Remove admin user
   const removeAdminUser = useMutation({
-    mutationFn: async (userId: string) => {
+    mutationFn: async (id: string) => {
       const { error } = await supabase
         .from('admin_users')
         .delete()
-        .eq('user_id', userId);
+        .eq('id', id);
       
       if (error) throw error;
     },
@@ -104,19 +82,19 @@ const UserManagement = () => {
 
   const handleAddUser = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newUserEmail || !newUserPassword) {
+    if (!newUserEmail) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please enter an email address",
         variant: "destructive",
       });
       return;
     }
-    addAdminUser.mutate({ email: newUserEmail, password: newUserPassword });
+    addAdminUser.mutate({ email: newUserEmail });
   };
 
   const filteredUsers = adminUsers?.filter(user =>
-    user.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    user.email?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   if (isLoading) {
@@ -161,17 +139,6 @@ const UserManagement = () => {
                   required
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={newUserPassword}
-                  onChange={(e) => setNewUserPassword(e.target.value)}
-                  placeholder="Enter password"
-                  required
-                />
-              </div>
               <div className="flex justify-end gap-2">
                 <Button
                   type="button"
@@ -181,7 +148,7 @@ const UserManagement = () => {
                   Cancel
                 </Button>
                 <Button type="submit" disabled={addAdminUser.isPending}>
-                  {addAdminUser.isPending ? 'Creating...' : 'Create User'}
+                  {addAdminUser.isPending ? 'Adding...' : 'Add User'}
                 </Button>
               </div>
             </form>
@@ -202,28 +169,23 @@ const UserManagement = () => {
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+            <CardTitle className="text-sm font-medium">Super Admins</CardTitle>
             <Shield className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {adminUsers?.filter(user => user.user?.last_sign_in_at).length || 0}
+              {adminUsers?.filter(user => user.is_super_admin).length || 0}
             </div>
           </CardContent>
         </Card>
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">New This Month</CardTitle>
+            <CardTitle className="text-sm font-medium">Regular Admins</CardTitle>
             <UserPlus className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {adminUsers?.filter(user => {
-                const createdAt = new Date(user.created_at);
-                const lastMonth = new Date();
-                lastMonth.setMonth(lastMonth.getMonth() - 1);
-                return createdAt >= lastMonth;
-              }).length || 0}
+              {adminUsers?.filter(user => !user.is_super_admin).length || 0}
             </div>
           </CardContent>
         </Card>
@@ -254,9 +216,8 @@ const UserManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Type</TableHead>
                 <TableHead>Created</TableHead>
-                <TableHead>Last Sign In</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
@@ -264,31 +225,22 @@ const UserManagement = () => {
               {filteredUsers.map((adminUser) => (
                 <TableRow key={adminUser.id}>
                   <TableCell className="font-medium">
-                    {adminUser.user?.email || 'Unknown'}
+                    {adminUser.email}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={adminUser.user?.last_sign_in_at ? "default" : "secondary"}>
-                      {adminUser.user?.last_sign_in_at ? 'Active' : 'Inactive'}
+                    <Badge variant={adminUser.is_super_admin ? "default" : "secondary"}>
+                      {adminUser.is_super_admin ? 'Super Admin' : 'Admin'}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {adminUser.user?.created_at ? 
-                      new Date(adminUser.user.created_at).toLocaleDateString() : 
-                      'Unknown'
-                    }
-                  </TableCell>
-                  <TableCell>
-                    {adminUser.user?.last_sign_in_at ? 
-                      new Date(adminUser.user.last_sign_in_at).toLocaleDateString() : 
-                      'Never'
-                    }
+                    {new Date(adminUser.created_at).toLocaleDateString()}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => window.open(`mailto:${adminUser.user?.email}`)}
+                        onClick={() => window.open(`mailto:${adminUser.email}`)}
                       >
                         <Mail className="h-4 w-4" />
                       </Button>
@@ -309,7 +261,7 @@ const UserManagement = () => {
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
                             <AlertDialogAction
-                              onClick={() => removeAdminUser.mutate(adminUser.user_id)}
+                              onClick={() => removeAdminUser.mutate(adminUser.id)}
                               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                             >
                               Remove User

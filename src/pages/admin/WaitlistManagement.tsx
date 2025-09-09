@@ -55,17 +55,17 @@ const WaitlistManagement = () => {
   const exportData = (type: 'candidates' | 'employers' | 'all') => {
     if (!waitlistData) return;
 
-    let dataToExport = [];
+    let dataToExport: any[] = [];
     if (type === 'candidates' || type === 'all') {
-      dataToExport = [...dataToExport, ...waitlistData.candidates.map(c => ({ ...c, type: 'candidate' }))];
+      dataToExport = [...dataToExport, ...waitlistData.candidates.map((c: any) => ({ ...c, type: 'candidate' }))];
     }
     if (type === 'employers' || type === 'all') {
-      dataToExport = [...dataToExport, ...waitlistData.employers.map(e => ({ ...e, type: 'employer' }))];
+      dataToExport = [...dataToExport, ...waitlistData.employers.map((e: any) => ({ ...e, type: 'employer' }))];
     }
 
     const csv = [
       ['Type', 'Name', 'Email', 'Field/Role', 'State', 'Created At'],
-      ...dataToExport.map(entry => [
+      ...dataToExport.map((entry: any) => [
         entry.type,
         entry.name,
         entry.email,

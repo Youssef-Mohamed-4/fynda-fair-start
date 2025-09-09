@@ -83,7 +83,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   // Check if user has admin access through any method
-  const hasAdminAccess = isAdmin || localStorageAdmin || envAdmin;
+  const hasUserAdminAccess = isAdmin || localStorageAdmin || envAdmin;
 
   // If no user is authenticated, redirect to login
   if (!user) {
@@ -92,7 +92,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   // If user is authenticated but not admin, show access denied
-  if (!hasAdminAccess) {
+  if (!hasUserAdminAccess) {
     console.log('🔐 AdminRoute: User authenticated but not admin, showing access denied');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
