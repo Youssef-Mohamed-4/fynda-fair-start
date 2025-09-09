@@ -81,45 +81,40 @@ export const submitWaitlistEntry = async (
  */
 export const authenticateAdmin = async (email: string, password: string) => {
   try {
-    // For now, use simple validation with localStorage
-    // In production, this would validate against admin_users table
-    const adminEmail = 'youssfarouk202@gmail.com';
-    
-    if (email === adminEmail) {
-      // Check if user exists in admin_users table
-      const { data: adminUser, error } = await supabase
-        .from('admin_users')
-        .select('id, email, is_super_admin')
-        .eq('email', email)
-        .single();
+    // Check if user exists in admin_users table
+    const { data: adminUser, error } = await supabase
+      .from('admin_users')
+      .select('id, email, is_super_admin')
+      .eq('email', email)
+      .single();
 
-      if (error || !adminUser) {
-        throw new Error('Admin user not found');
-      }
-
-      // Set admin token
-      const token = btoa(JSON.stringify({
-        adminId: adminUser.id,
-        email: adminUser.email,
-        isSuperAdmin: adminUser.is_super_admin,
-        exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-      }));
-      
-      localStorage.setItem('admin_token', token);
-      localStorage.setItem('fynda-admin', 'true');
-
-      return {
-        success: true,
-        token,
-        admin: {
-          id: adminUser.id,
-          email: adminUser.email,
-          isSuperAdmin: adminUser.is_super_admin
-        }
-      };
-    } else {
-      throw new Error('Invalid credentials');
+    if (error || !adminUser) {
+      throw new Error('Admin user not found. Please contact your administrator.');
     }
+
+    // For this demo, we accept any password for existing admin users
+    // In production, you would validate the password properly
+    
+    // Set admin token
+    const token = btoa(JSON.stringify({
+      adminId: adminUser.id,
+      email: adminUser.email,
+      isSuperAdmin: adminUser.is_super_admin,
+      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
+    }));
+    
+    localStorage.setItem('admin_token', token);
+    localStorage.setItem('fynda-admin', 'true');
+
+    return {
+      success: true,
+      token,
+      admin: {
+        id: adminUser.id,
+        email: adminUser.email,
+        isSuperAdmin: adminUser.is_super_admin
+      }
+    };
   } catch (error) {
     console.error('Admin authentication error:', error);
     throw error;
