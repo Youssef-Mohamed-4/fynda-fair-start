@@ -77,7 +77,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const signIn = async (email: string, password: string) => {
     try {
       console.log('🔐 useAuth signIn called');
-      const result = await authenticateAdmin(email, password);
+      
+      // Use Supabase auth directly instead of custom API
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      
+      if (error) {
+        console.error('🔐 Supabase signIn error:', error);
+        return { error };
+      }
+      
+      console.log('🔐 SignIn successful, auth state will update via listener');
       return { error: null };
     } catch (error: any) {
       console.error('🔐 useAuth signIn error:', error);
