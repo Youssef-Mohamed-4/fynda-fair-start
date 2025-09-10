@@ -1,18 +1,5 @@
-/**
- * Secure API Client using Supabase
- * 
- * This client handles all data operations through Supabase directly:
- * - Waitlist submissions via Supabase client
- * - Admin authentication via localStorage fallback
- * - Admin data fetching via Supabase client
- * - Proper error handling and validation
- */
-
 import { supabase } from '@/integrations/supabase/client';
 
-/**
- * Secure waitlist submission
- */
 interface WaitlistCandidateData {
   name: string;
   email: string;
@@ -57,58 +44,69 @@ export const submitWaitlistEntry = async (
       };
     }
 
+    console.log('🔄 Submitting to table:', tableName, insertData);
+
     const { data: result, error } = await supabase
       .from(tableName)
-      .insert([insertData])
+      .insert(insertData)
       .select();
 
     if (error) {
+      console.error('❌ Supabase error:', error);
       if (error.code === '23505') {
         throw new Error(`This email is already registered in our ${type} waitlist!`);
       }
       throw new Error(error.message || 'Failed to submit waitlist entry');
     }
 
+    console.log('✅ Waitlist entry submitted successfully:', result);
     return { success: true, data: result };
   } catch (error) {
-    console.error('Waitlist submission error:', error);
+    console.error('❌ Waitlist submission error:', error);
     throw error;
   }
 };
 
-/**
- * Admin authentication using localStorage
- */
 export const authenticateAdmin = async (email: string, password: string) => {
   try {
-    // Check if user exists in admin_users table
-    const { data: adminUser, error } = await supabase
+    console.log('🔐 Attempting admin login for:', email);
+    
+    // First authenticate with Supabase Auth
+    const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (authError) {
+      console.error('🔐 Supabase auth error:', authError);
+      throw new Error(authError.message);
+    }
+
+    if (!authData.user) {
+      throw new Error('Authentication failed - no user returned');
+    }
+
+    console.log('🔐 Auth successful, checking admin status...');
+
+    // Check if user is admin
+    const { data: adminUser, error: adminError } = await supabase
       .from('admin_users')
       .select('id, email, is_super_admin')
-      .eq('email', email)
+      .eq('user_id', authData.user.id)
       .single();
 
-    if (error || !adminUser) {
+    if (adminError || !adminUser) {
+      console.error('🔐 Admin check error:', adminError);
+      await supabase.auth.signOut(); // Clean up auth session
       throw new Error('Admin user not found. Please contact your administrator.');
     }
 
-    // For this demo, we accept any password for existing admin users
-    // In production, you would validate the password properly
-    
-    // Set admin token
-    const token = btoa(JSON.stringify({
-      adminId: adminUser.id,
-      email: adminUser.email,
-      isSuperAdmin: adminUser.is_super_admin,
-      exp: Math.floor(Date.now() / 1000) + (24 * 60 * 60) // 24 hours
-    }));
-    
-    localStorage.setItem('admin_token', token);
+    console.log('🔐 Admin user found:', adminUser);
     localStorage.setItem('fynda-admin', 'true');
 
     return {
       success: true,
-      token,
+      user: authData.user,
       admin: {
         id: adminUser.id,
         email: adminUser.email,
@@ -116,7 +114,7 @@ export const authenticateAdmin = async (email: string, password: string) => {
       }
     };
   } catch (error) {
-    console.error('Admin authentication error:', error);
+    console.error('🔐 Admin authentication error:', error);
     throw error;
   }
 };
