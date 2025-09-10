@@ -7,11 +7,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 const Auth = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState('youssfarouk202@gmail.com');
+  const [password, setPassword] = useState('admin123');
   const [loading, setLoading] = useState(false);
+  const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
   
   const { user, isAdmin, loading: authLoading, signIn } = useAuth();
@@ -25,40 +27,75 @@ const Auth = () => {
     );
   }
 
-  if (user) {
-    const redirectPath = isAdmin ? "/admin" : "/";
-    console.log('🔐 User authenticated, redirecting to:', redirectPath, 'isAdmin:', isAdmin);
-    return <Navigate to={redirectPath} replace />;
+  if (user && isAdmin) {
+    return <Navigate to="/admin" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  if (user && !isAdmin) {
+    return <Navigate to="/" replace />;
+  }
+
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     
-    console.log('🔐 Login attempt started with email:', email);
+    try {
+      const { data, error } = await supabase.auth.signUp({
+        email,
+        password,
+      });
 
+      if (error) {
+        setError(error.message);
+      } else {
+        toast({
+          title: "Account created!",
+          description: "Please check your email to verify your account, or try signing in if it already exists.",
+        });
+        setIsSignUp(false);
+      }
+    } catch (err: any) {
+      setError(err.message || 'Failed to create account');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignIn = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+    
     try {
       const result = await signIn(email, password);
-      console.log('🔐 Login result:', result);
-
+      
       if (result.error) {
-        console.error('🔐 Login error:', result.error.message);
-        setError(result.error.message);
+        if (result.error.message.includes('Invalid login credentials')) {
+          setError('Invalid email or password. Try signing up first if you haven\'t created an account.');
+        } else {
+          setError(result.error.message);
+        }
       } else {
-        console.log('🔐 Login successful, should redirect now');
         toast({
           title: "Welcome back!",
           description: "You have been successfully logged in.",
         });
       }
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Login failed';
-      console.error('🔐 Login exception:', errorMessage);
-      setError(errorMessage);
+    } catch (err: any) {
+      setError(err.message || 'Login failed');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleDevelopmentBypass = () => {
+    localStorage.setItem('fynda-admin', 'true');
+    toast({
+      title: "Development Access",
+      description: "Admin access enabled for development.",
+    });
+    window.location.reload();
   };
 
   return (
@@ -66,14 +103,14 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold text-center">
-            Welcome Back
+            {isSignUp ? 'Create Admin Account' : 'Admin Login'}
           </CardTitle>
           <CardDescription className="text-center">
-            Sign in to access your admin panel
+            {isSignUp ? 'Create your admin account' : 'Sign in to access your admin panel'}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <form onSubmit={handleSubmit} className="space-y-4">
+          <form onSubmit={isSignUp ? handleSignUp : handleSignIn} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -81,7 +118,7 @@ const Auth = () => {
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="admin@fynda.ai"
+                placeholder="youssfarouk202@gmail.com"
                 required
               />
             </div>
@@ -108,9 +145,36 @@ const Auth = () => {
               className="w-full" 
               disabled={loading}
             >
-              {loading ? 'Loading...' : 'Sign In'}
+              {loading ? 'Loading...' : (isSignUp ? 'Sign Up' : 'Sign In')}
             </Button>
           </form>
+
+          <div className="text-center space-y-2">
+            <Button 
+              variant="link" 
+              onClick={() => {
+                setIsSignUp(!isSignUp);
+                setError('');
+              }}
+              className="text-sm"
+            >
+              {isSignUp ? 'Already have an account? Sign In' : 'Need to create an account? Sign Up'}
+            </Button>
+          </div>
+
+          {import.meta.env.DEV && (
+            <div className="border-t pt-4 space-y-2">
+              <p className="text-sm text-muted-foreground text-center">Development Access:</p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={handleDevelopmentBypass}
+                className="w-full text-xs"
+              >
+                Enable Admin Access (Dev Mode)
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

@@ -6,6 +6,7 @@ import SecurityHeaders from './components/security/SecurityHeaders';
 
 // Pages
 import Home from './pages/Index';
+import Auth from './pages/Auth';
 import AdminNotFound from './pages/NotFound';
 import AdminLayout from './pages/admin/AdminLayout';
 import Dashboard from './pages/admin/Dashboard';
@@ -17,55 +18,28 @@ import AnalyticsDashboard from './pages/admin/AnalyticsDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import TestPage from './components/TestPage';
 
-// Enhanced Admin Protection Components
-import SecureAdminAuth from './components/admin/SecureAdminAuth';
+// Admin Protection Component
+import AdminProtected from './components/admin/AdminProtected';
 
-/**
- * App Component - Main Application Router with Enhanced Security
- * 
- * This component provides:
- * - Comprehensive security headers
- * - Multiple layers of admin protection
- * - Debug logging for security monitoring
- * - Graceful error handling
- * - Performance optimizations
- * 
- * Security Features:
- * - AdminRoute: localStorage + environment variable + database admin checks
- * - AdminProtected: Database-based admin authentication
- * - SecurityHeaders: Enhanced CSP and security headers
- * - Rate limiting and input sanitization
- */
 function App() {
-  // Debug logging for app routing and security (development only)
-  if (import.meta.env.DEV) {
-    console.log('🔐 App: Initializing enhanced routing with multi-layer security protection');
-    console.log('🔐 App: Admin protection methods available:', {
-      localStorage: 'fynda-admin flag',
-      environment: 'VITE_ADMIN_MODE variable',
-      database: 'admin_users table check'
-    });
-  }
-
   return (
     <>
       <SecurityHeaders />
       <BrowserRouter>
         <Routes>
-          {/* Public Pages - No authentication required */}
+          {/* Public Pages */}
           <Route path="/" element={<Home />} />
-          
-          {/* Test Route for debugging */}
           <Route path="/test" element={<TestPage />} />
+          
+          {/* Auth Routes */}
+          <Route path="/login" element={<Auth />} />
+          <Route path="/auth" element={<Auth />} />
 
-          {/* Admin Login Route */}
-          <Route path="/login" element={<Navigate to="/admin" replace />} />
-
-          {/* Protected Admin Pages - Secure server-side authentication */}
+          {/* Protected Admin Pages */}
           <Route path="/admin" element={
-            <SecureAdminAuth>
+            <AdminProtected>
               <AdminLayout />
-            </SecureAdminAuth>
+            </AdminProtected>
           }>
             <Route index element={<Dashboard />} />
             <Route path="analytics" element={<AnalyticsDashboard />} />
@@ -77,7 +51,7 @@ function App() {
             <Route path="*" element={<AdminNotFound />} />
           </Route>
 
-          {/* Catch-all fallback with security logging */}
+          {/* Catch-all fallback */}
           <Route path="*" element={
             <div className="min-h-screen flex items-center justify-center bg-background">
               <div className="text-center">

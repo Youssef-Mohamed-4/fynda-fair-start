@@ -330,8 +330,12 @@ export type Database = {
       }
     }
     Functions: {
+      create_admin_user: {
+        Args: { admin_email: string; admin_password?: string }
+        Returns: string
+      }
       is_admin: {
-        Args: { check_user_id?: string }
+        Args: Record<PropertyKey, never>
         Returns: boolean
       }
       log_auth_attempt: {
