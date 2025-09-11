@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
   Users, 
   UserPlus, 
@@ -15,6 +16,7 @@ import {
   Trash2, 
   Shield, 
   Search,
+  AlertCircle
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,12 +28,12 @@ const UserManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch admin users - simplified query
+  // Fetch admin users using the actual admins table
   const { data: adminUsers, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('admin_users')
+        .from('admins')
         .select('*')
         .order('created_at', { ascending: false });
       
@@ -40,13 +42,13 @@ const UserManagement = () => {
     },
   });
 
-  // Add new admin user - simplified
+  // Add new admin user
   const addAdminUser = useMutation({
     mutationFn: async ({ email }: { email: string }) => {
-      // Add to admin_users table
+      // Add to admins table
       const { error } = await supabase
-        .from('admin_users')
-        .insert([{ email, is_super_admin: false }]);
+        .from('admins')
+        .insert([{ email, role: 'admin' }]);
 
       if (error) throw error;
     },
@@ -65,7 +67,7 @@ const UserManagement = () => {
   const removeAdminUser = useMutation({
     mutationFn: async (id: string) => {
       const { error } = await supabase
-        .from('admin_users')
+        .from('admins')
         .delete()
         .eq('id', id);
       
@@ -156,6 +158,13 @@ const UserManagement = () => {
         </Dialog>
       </div>
 
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          User management functionality requires proper authentication setup. The users will need to create accounts separately through the auth system.
+        </AlertDescription>
+      </Alert>
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <Card>
@@ -174,7 +183,7 @@ const UserManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {adminUsers?.filter(user => user.is_super_admin).length || 0}
+              {adminUsers?.filter(user => user.role === 'superadmin').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -185,7 +194,7 @@ const UserManagement = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {adminUsers?.filter(user => !user.is_super_admin).length || 0}
+              {adminUsers?.filter(user => user.role === 'admin').length || 0}
             </div>
           </CardContent>
         </Card>
@@ -216,7 +225,7 @@ const UserManagement = () => {
             <TableHeader>
               <TableRow>
                 <TableHead>Email</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Role</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead>Actions</TableHead>
               </TableRow>
@@ -228,12 +237,12 @@ const UserManagement = () => {
                     {adminUser.email}
                   </TableCell>
                   <TableCell>
-                    <Badge variant={adminUser.is_super_admin ? "default" : "secondary"}>
-                      {adminUser.is_super_admin ? 'Super Admin' : 'Admin'}
+                    <Badge variant={adminUser.role === 'superadmin' ? "default" : "secondary"}>
+                      {adminUser.role === 'superadmin' ? 'Super Admin' : 'Admin'}
                     </Badge>
                   </TableCell>
                   <TableCell>
-                    {new Date(adminUser.created_at).toLocaleDateString()}
+                    {adminUser.created_at ? new Date(adminUser.created_at).toLocaleDateString() : 'N/A'}
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">

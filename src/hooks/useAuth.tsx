@@ -31,12 +31,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user ?? null);
 
         if (session?.user) {
-          // Check if user is admin by querying admin_users table
+          // Check if user is admin by querying admins table
           try {
             const { data: adminUser } = await supabase
-              .from('admin_users')
-              .select('id, email, is_super_admin')
-              .eq('user_id', session.user.id)
+              .from('admins')
+              .select('id, email, role')
+              .eq('email', session.user.email!)
               .single();
 
             const isAdminUser = !!adminUser;

@@ -4,32 +4,30 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Download, Search, Filter, Trash2, Mail, Eye } from 'lucide-react';
+import { Download, Search, Trash2, Mail, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const WaitlistManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [filterType, setFilterType] = useState<'all' | 'candidates' | 'employers'>('all');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch waitlist data
+  // Fetch waitlist data from the actual employers_waitlist table
   const { data: waitlistData, isLoading } = useQuery({
     queryKey: ['waitlist-data'],
     queryFn: async () => {
-      const [candidatesResult, employersResult] = await Promise.all([
-        supabase.from('waitlist_candidates').select('*').order('created_at', { ascending: false }),
-        supabase.from('waitlist_employers').select('*').order('created_at', { ascending: false })
-      ]);
+      const employersResult = await supabase
+        .from('employers_waitlist')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      if (candidatesResult.error) throw candidatesResult.error;
       if (employersResult.error) throw employersResult.error;
 
       return {
-        candidates: candidatesResult.data || [],
+        candidates: [], // No candidates table available
         employers: employersResult.data || [],
       };
     },
@@ -37,9 +35,11 @@ const WaitlistManagement = () => {
 
   // Delete entry mutation
   const deleteEntry = useMutation({
-    mutationFn: async ({ type, id }: { type: 'candidate' | 'employer'; id: string }) => {
-      const table = type === 'candidate' ? 'waitlist_candidates' : 'waitlist_employers';
-      const { error } = await supabase.from(table).delete().eq('id', id);
+    mutationFn: async ({ id }: { id: string }) => {
+      const { error } = await supabase
+        .from('employers_waitlist')
+        .delete()
+        .eq('id', id);
       if (error) throw error;
     },
     onSuccess: () => {
@@ -52,25 +52,18 @@ const WaitlistManagement = () => {
   });
 
   // Export data
-  const exportData = (type: 'candidates' | 'employers' | 'all') => {
+  const exportData = () => {
     if (!waitlistData) return;
 
-    let dataToExport: any[] = [];
-    if (type === 'candidates' || type === 'all') {
-      dataToExport = [...dataToExport, ...waitlistData.candidates.map((c: any) => ({ ...c, type: 'candidate' }))];
-    }
-    if (type === 'employers' || type === 'all') {
-      dataToExport = [...dataToExport, ...waitlistData.employers.map((e: any) => ({ ...e, type: 'employer' }))];
-    }
-
     const csv = [
-      ['Type', 'Name', 'Email', 'Field/Role', 'State', 'Created At'],
-      ...dataToExport.map((entry: any) => [
-        entry.type,
+      ['Type', 'Name', 'Email', 'Industry', 'Company Size', 'Early Career Hires/Year', 'Created At'],
+      ...waitlistData.employers.map((entry: any) => [
+        'employer',
         entry.name,
         entry.email,
-        entry.field_of_study || entry.role,
-        entry.current_state || 'N/A',
+        entry.industry,
+        entry.company_size,
+        entry.early_career_hires_per_year || 'N/A',
         new Date(entry.created_at).toLocaleDateString()
       ])
     ].map(row => row.join(',')).join('\n');
@@ -79,24 +72,16 @@ const WaitlistManagement = () => {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `waitlist-export-${type}-${new Date().toISOString().split('T')[0]}.csv`;
+    a.download = `waitlist-export-${new Date().toISOString().split('T')[0]}.csv`;
     a.click();
     window.URL.revokeObjectURL(url);
   };
 
-  // Filter data based on search and type
-  const filteredCandidates = waitlistData?.candidates.filter(candidate =>
-    (filterType === 'all' || filterType === 'candidates') &&
-    (candidate.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     candidate.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     candidate.field_of_study?.toLowerCase().includes(searchTerm.toLowerCase()))
-  ) || [];
-
+  // Filter data based on search
   const filteredEmployers = waitlistData?.employers.filter(employer =>
-    (filterType === 'all' || filterType === 'employers') &&
-    (employer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     employer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-     employer.role?.toLowerCase().includes(searchTerm.toLowerCase()))
+    employer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    employer.industry?.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
   if (isLoading) {
@@ -116,23 +101,22 @@ const WaitlistManagement = () => {
       <div className="flex justify-between items-center">
         <div>
           <h1 className="text-3xl font-bold">Waitlist Management</h1>
-          <p className="text-muted-foreground">Manage candidate and employer waitlist entries</p>
+          <p className="text-muted-foreground">Manage employer waitlist entries</p>
         </div>
         <div className="flex gap-2">
-          <Button onClick={() => exportData('candidates')} variant="outline" size="sm">
+          <Button onClick={exportData} variant="outline" size="sm">
             <Download className="h-4 w-4 mr-2" />
-            Export Candidates
-          </Button>
-          <Button onClick={() => exportData('employers')} variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export Employers
-          </Button>
-          <Button onClick={() => exportData('all')} variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export All
+            Export Data
           </Button>
         </div>
       </div>
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          Currently only employer waitlist entries are available. Candidate functionality requires additional database tables.
+        </AlertDescription>
+      </Alert>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -141,7 +125,8 @@ const WaitlistManagement = () => {
             <CardTitle className="text-sm font-medium">Total Candidates</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{waitlistData?.candidates.length || 0}</div>
+            <div className="text-2xl font-bold">0</div>
+            <p className="text-xs text-muted-foreground">Coming soon</p>
           </CardContent>
         </Card>
         <Card>
@@ -157,170 +142,81 @@ const WaitlistManagement = () => {
             <CardTitle className="text-sm font-medium">Total Entries</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
-              {(waitlistData?.candidates.length || 0) + (waitlistData?.employers.length || 0)}
-            </div>
+            <div className="text-2xl font-bold">{waitlistData?.employers.length || 0}</div>
           </CardContent>
         </Card>
       </div>
 
-      {/* Search and Filter */}
+      {/* Search */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search by name, email, or field..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </div>
-            <div className="flex gap-2">
-              <Button
-                variant={filterType === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterType('all')}
-              >
-                All
-              </Button>
-              <Button
-                variant={filterType === 'candidates' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterType('candidates')}
-              >
-                Candidates
-              </Button>
-              <Button
-                variant={filterType === 'employers' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setFilterType('employers')}
-              >
-                Employers
-              </Button>
-            </div>
+          <div className="relative">
+            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+            <Input
+              placeholder="Search by name, email, or industry..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pl-10"
+            />
           </div>
         </CardContent>
       </Card>
 
-      {/* Data Tables */}
-      <Tabs defaultValue="candidates" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="candidates">
-            Candidates ({filteredCandidates.length})
-          </TabsTrigger>
-          <TabsTrigger value="employers">
-            Employers ({filteredEmployers.length})
-          </TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="candidates">
-          <Card>
-            <CardHeader>
-              <CardTitle>Candidate Entries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Field of Study</TableHead>
-                    <TableHead>Current State</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredCandidates.map((candidate) => (
-                    <TableRow key={candidate.id}>
-                      <TableCell className="font-medium">{candidate.name}</TableCell>
-                      <TableCell>{candidate.email}</TableCell>
-                      <TableCell>{candidate.field_of_study}</TableCell>
-                      <TableCell>
-                        <Badge variant="secondary">{candidate.current_state}</Badge>
-                      </TableCell>
-                      <TableCell>{new Date(candidate.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(`mailto:${candidate.email}`)}
-                          >
-                            <Mail className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteEntry.mutate({ type: 'candidate', id: candidate.id })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="employers">
-          <Card>
-            <CardHeader>
-              <CardTitle>Employer Entries</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Email</TableHead>
-                    <TableHead>Role</TableHead>
-                    <TableHead>Early Careers/Year</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredEmployers.map((employer) => (
-                    <TableRow key={employer.id}>
-                      <TableCell className="font-medium">{employer.name}</TableCell>
-                      <TableCell>{employer.email}</TableCell>
-                      <TableCell>{employer.role}</TableCell>
-                      <TableCell>{employer.early_careers_per_year || 'N/A'}</TableCell>
-                      <TableCell>{new Date(employer.created_at).toLocaleDateString()}</TableCell>
-                      <TableCell>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => window.open(`mailto:${employer.email}`)}
-                          >
-                            <Mail className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => deleteEntry.mutate({ type: 'employer', id: employer.id })}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      {/* Employers Table */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Employer Entries ({filteredEmployers.length})</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Name</TableHead>
+                <TableHead>Email</TableHead>
+                <TableHead>Industry</TableHead>
+                <TableHead>Company Size</TableHead>
+                <TableHead>Early Career Hires/Year</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEmployers.map((employer) => (
+                <TableRow key={employer.id}>
+                  <TableCell className="font-medium">{employer.name}</TableCell>
+                  <TableCell>{employer.email}</TableCell>
+                  <TableCell>
+                    <Badge variant="secondary">{employer.industry}</Badge>
+                  </TableCell>
+                  <TableCell>{employer.company_size}</TableCell>
+                  <TableCell>{employer.early_career_hires_per_year || 'N/A'}</TableCell>
+                  <TableCell>
+                    {employer.created_at ? new Date(employer.created_at).toLocaleDateString() : 'N/A'}
+                  </TableCell>
+                  <TableCell>
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => window.open(`mailto:${employer.email}`)}
+                      >
+                        <Mail className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteEntry.mutate({ id: employer.id })}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </CardContent>
+      </Card>
     </div>
   );
 };

@@ -1,69 +1,29 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useState } from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
-import { Globe, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
+import { Globe, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 const ComingSoonToggle = () => {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: settings, isLoading } = useQuery<any>({
-    queryKey: ['site-settings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const toggleComingSoon = useMutation({
-    mutationFn: async (comingSoonMode: boolean) => {
-      if (!settings) return;
-      const { error } = await supabase
-        .from('site_settings')
-        .update({ coming_soon_mode: comingSoonMode })
-        .eq('id', settings.id);
-      if (error) throw error;
-    },
-    onSuccess: (_, comingSoonMode) => {
-      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
-      toast({
-        title: comingSoonMode ? "Coming Soon mode enabled" : "Website is now live",
-        description: comingSoonMode 
-          ? "Your website now shows a coming soon page to visitors"
-          : "Your website is now visible to all visitors",
-      });
-    },
-  });
+  const [isComingSoon, setIsComingSoon] = useState(false);
 
   const handleToggle = () => {
-    toggleComingSoon.mutate(!settings?.coming_soon_mode);
+    setIsComingSoon(!isComingSoon);
   };
-
-  if (isLoading || !settings) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Coming Soon Mode</h1>
-        <div className="animate-pulse">
-          <div className="h-48 bg-muted rounded-lg" />
-        </div>
-      </div>
-    );
-  }
-
-  const isComingSoon = settings.coming_soon_mode ?? false;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Coming Soon Mode</h1>
       </div>
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          This feature requires a site_settings table in your database. The toggle below is for demonstration purposes only.
+        </AlertDescription>
+      </Alert>
 
       <Card className="max-w-2xl">
         <CardHeader>
@@ -84,23 +44,27 @@ const ComingSoonToggle = () => {
                 <h3 className="font-semibold">
                   {isComingSoon ? 'Coming Soon Mode' : 'Website Live'}
                 </h3>
+                <p className="text-sm text-muted-foreground">
+                  {isComingSoon 
+                    ? 'Visitors see a coming soon page'
+                    : 'Website is visible to all visitors'
+                  }
+                </p>
               </div>
             </div>
             <Switch
               checked={!isComingSoon}
               onCheckedChange={handleToggle}
-              disabled={toggleComingSoon.isPending}
             />
           </div>
 
           <Button
             onClick={handleToggle}
-            disabled={toggleComingSoon.isPending}
             variant={isComingSoon ? "default" : "secondary"}
             size="lg"
             className="w-full"
           >
-            {toggleComingSoon.isPending ? 'Updating...' : isComingSoon ? 'Make Website Live' : 'Enable Coming Soon Mode'}
+            {isComingSoon ? 'Make Website Live' : 'Enable Coming Soon Mode'}
           </Button>
         </CardContent>
       </Card>

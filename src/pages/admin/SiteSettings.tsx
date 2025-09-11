@@ -1,47 +1,23 @@
 import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Upload, Save } from 'lucide-react';
+import { Upload, Save, AlertCircle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 
 const SiteSettings = () => {
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: settings, isLoading } = useQuery<any>({
-    queryKey: ['site-settings'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('site_settings')
-        .select('*')
-        .single();
-      if (error) throw error;
-      return data;
-    },
-  });
-
-  const updateSettings = useMutation({
-    mutationFn: async (newSettings: Record<string, unknown>) => {
-      if (!settings) return;
-      const { error } = await supabase
-        .from('site_settings')
-        .update(newSettings)
-        .eq('id', settings.id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['site-settings'] });
-      toast({
-        title: "Settings updated!",
-        description: "Your site settings have been saved successfully.",
-      });
-    },
+  
+  const [settings, setSettings] = useState({
+    site_title: 'Fynda AI',
+    site_description: 'AI-powered talent matching platform',
+    primary_color: '213 85% 15%',
+    secondary_color: '213 100% 96%',
+    accent_color: '213 85% 60%'
   });
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
@@ -56,7 +32,12 @@ const SiteSettings = () => {
       accent_color: formData.get('accent_color')?.toString() ?? '',
     };
 
-    updateSettings.mutate(updatedSettings);
+    setSettings(updatedSettings);
+    
+    toast({
+      title: "Settings saved (demo)",
+      description: "Settings would be saved to database with proper setup.",
+    });
   };
 
   const handleLogoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -70,23 +51,18 @@ const SiteSettings = () => {
     }
   };
 
-  if (isLoading || !settings) {
-    return (
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">Site Settings</h1>
-        <div className="animate-pulse space-y-4">
-          <div className="h-32 bg-muted rounded-lg" />
-          <div className="h-64 bg-muted rounded-lg" />
-        </div>
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold">Site Settings</h1>
       </div>
+
+      <Alert>
+        <AlertCircle className="h-4 w-4" />
+        <AlertDescription>
+          This feature requires a site_settings table in your database. Changes made here are temporary and for demonstration purposes only.
+        </AlertDescription>
+      </Alert>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -96,11 +72,11 @@ const SiteSettings = () => {
           <CardContent className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="site_title">Site Title</Label>
-              <Input id="site_title" name="site_title" defaultValue={settings.site_title ?? ''} />
+              <Input id="site_title" name="site_title" defaultValue={settings.site_title} />
             </div>
             <div className="space-y-2">
               <Label htmlFor="site_description">Site Description</Label>
-              <Textarea id="site_description" name="site_description" defaultValue={settings.site_description ?? ''} />
+              <Textarea id="site_description" name="site_description" defaultValue={settings.site_description} />
             </div>
           </CardContent>
         </Card>
@@ -128,15 +104,24 @@ const SiteSettings = () => {
             <CardTitle>Color Scheme</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Input name="primary_color" defaultValue={settings.primary_color ?? ''} />
-            <Input name="secondary_color" defaultValue={settings.secondary_color ?? ''} />
-            <Input name="accent_color" defaultValue={settings.accent_color ?? ''} />
+            <div className="space-y-2">
+              <Label htmlFor="primary_color">Primary Color (HSL)</Label>
+              <Input name="primary_color" defaultValue={settings.primary_color} placeholder="213 85% 15%" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="secondary_color">Secondary Color (HSL)</Label>
+              <Input name="secondary_color" defaultValue={settings.secondary_color} placeholder="213 100% 96%" />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="accent_color">Accent Color (HSL)</Label>
+              <Input name="accent_color" defaultValue={settings.accent_color} placeholder="213 85% 60%" />
+            </div>
           </CardContent>
         </Card>
 
-        <Button type="submit" disabled={updateSettings.isPending}>
+        <Button type="submit">
           <Save className="mr-2 h-4 w-4" />
-          {updateSettings.isPending ? 'Saving...' : 'Save Settings'}
+          Save Settings (Demo)
         </Button>
       </form>
     </div>

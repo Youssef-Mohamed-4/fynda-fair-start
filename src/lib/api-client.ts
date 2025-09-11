@@ -21,33 +21,24 @@ export const submitWaitlistEntry = async (
   data: WaitlistCandidateData | WaitlistEmployerData
 ) => {
   try {
-    const tableName = type === 'candidate' ? 'waitlist_candidates' : 'waitlist_employers';
-    
-    let insertData: any = {};
-    
+    // Only support employer type since we only have employers_waitlist table
     if (type === 'candidate') {
-      const candidateData = data as WaitlistCandidateData;
-      insertData = {
-        name: candidateData.name,
-        email: candidateData.email,
-        current_state: candidateData.currentState,
-        field_of_study: candidateData.fieldOfStudy,
-        field_description: candidateData.fieldDescription || null
-      };
-    } else {
-      const employerData = data as WaitlistEmployerData;
-      insertData = {
-        name: employerData.name,
-        email: employerData.email,
-        role: employerData.role,
-        early_careers_per_year: employerData.earlyCareersPerYear || null
-      };
+      throw new Error('Candidate registration is not available yet');
     }
+    
+    const employerData = data as WaitlistEmployerData;
+    const insertData = {
+      name: employerData.name,
+      email: employerData.email,
+      industry: employerData.role || 'Other', // Map role to industry for now
+      company_size: 'Not specified', // Default value
+      early_career_hires_per_year: employerData.earlyCareersPerYear?.toString() || null
+    };
 
-    console.log('🔄 Submitting to table:', tableName, insertData);
+    console.log('🔄 Submitting to employers_waitlist:', insertData);
 
     const { data: result, error } = await supabase
-      .from(tableName)
+      .from('employers_waitlist')
       .insert(insertData)
       .select();
 
@@ -90,9 +81,9 @@ export const authenticateAdmin = async (email: string, password: string) => {
 
     // Check if user is admin
     const { data: adminUser, error: adminError } = await supabase
-      .from('admin_users')
-      .select('id, email, is_super_admin')
-      .eq('user_id', authData.user.id)
+      .from('admins')
+      .select('id, email, role')
+      .eq('email', authData.user.email!)
       .single();
 
     if (adminError || !adminUser) {
@@ -110,7 +101,7 @@ export const authenticateAdmin = async (email: string, password: string) => {
       admin: {
         id: adminUser.id,
         email: adminUser.email,
-        isSuperAdmin: adminUser.is_super_admin
+        isSuperAdmin: adminUser.role === 'superadmin'
       }
     };
   } catch (error) {
@@ -124,16 +115,15 @@ export const authenticateAdmin = async (email: string, password: string) => {
  */
 export const getAdminData = async () => {
   try {
-    const [candidatesResult, employersResult] = await Promise.all([
-      supabase.from('waitlist_candidates').select('*').order('created_at', { ascending: false }),
-      supabase.from('waitlist_employers').select('*').order('created_at', { ascending: false })
-    ]);
+    const employersResult = await supabase
+      .from('employers_waitlist')
+      .select('*')
+      .order('created_at', { ascending: false });
 
-    if (candidatesResult.error) throw candidatesResult.error;
     if (employersResult.error) throw employersResult.error;
 
     return {
-      candidates: candidatesResult.data || [],
+      candidates: [], // No candidates table available
       employers: employersResult.data || []
     };
   } catch (error) {
