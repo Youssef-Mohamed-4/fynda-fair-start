@@ -119,8 +119,12 @@ const WhyFyndaSection = () => {
           
           {/* CTA */}
           <div className="text-center mt-16">
-            <Button variant="hero" size="xl">
-              Join Both Sides of the Revolution
+            <Button 
+              variant="hero" 
+              size="xl"
+              onClick={() => document.getElementById('waitlist-form')?.scrollIntoView({ behavior: 'smooth' })}
+            >
+              Join the Revolution
             </Button>
           </div>
           

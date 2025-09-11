@@ -36,21 +36,15 @@ const Dashboard = () => {
 
   const stats = [
     {
-      title: 'Total Candidates',
-      value: adminData?.candidates?.length || 0,
-      icon: Users,
-      description: 'Registered candidates',
-    },
-    {
       title: 'Total Employers',
       value: adminData?.employers?.length || 0,
       icon: Briefcase,
       description: 'Registered employers',
     },
     {
-      title: 'New Candidates (30d)',
-      value: adminData?.candidates?.filter((c: any) => {
-        const created = new Date(c.created_at);
+      title: 'New Employers (30d)',
+      value: adminData?.employers?.filter((e: any) => {
+        const created = new Date(e.created_at);
         const thirtyDaysAgo = new Date();
         thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
         return created >= thirtyDaysAgo;
@@ -60,9 +54,15 @@ const Dashboard = () => {
     },
     {
       title: 'Total Signups',
-      value: (adminData?.candidates?.length || 0) + (adminData?.employers?.length || 0),
+      value: adminData?.employers?.length || 0,
       icon: Database,
       description: 'All time',
+    },
+    {
+      title: 'Active Today',
+      value: 0,
+      icon: Globe,
+      description: 'Today\'s activity',
     },
   ];
 

@@ -1,191 +1,67 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { useToast } from "@/hooks/use-toast";
-import { CheckCircle, Users, Building2 } from "lucide-react";
-import { 
-  sanitizeInput, 
-  validateEmail, 
-  checkRateLimit, 
-  validateName, 
-  logSecurityEvent,
-  ADMIN_CONFIG 
-} from "@/utils/security";
-import { submitWaitlistEntry } from "@/lib/api-client";
+import { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { submitWaitlistEntry } from '@/lib/api-client';
+import { AlertCircle, CheckCircle2, Loader2 } from 'lucide-react';
 
 const ComprehensiveWaitlistForm = () => {
-  const [activeTab, setActiveTab] = useState<'candidate' | 'employer'>('candidate');
+  // Form states
   const [loading, setLoading] = useState(false);
-  const [success, setSuccess] = useState<'candidate' | 'employer' | null>(null);
-  const [error, setError] = useState('');
-  const { toast } = useToast();
-
-  // Candidate form state
-  const [candidateForm, setCandidateForm] = useState({
-    name: '',
-    email: '',
-    currentState: '',
-    fieldOfStudy: '',
-    fieldDescription: ''
-  });
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Employer form state
-  const [employerForm, setEmployerForm] = useState({
-    name: '',
-    email: '',
-    role: '',
-    roleOther: '',
-    earlyCareersPerYear: ''
-  });
+  const [employerName, setEmployerName] = useState('');
+  const [employerEmail, setEmployerEmail] = useState('');
+  const [employerIndustry, setEmployerIndustry] = useState('');
+  const [employerCompanySize, setEmployerCompanySize] = useState('');
+  const [employerEarlyCareers, setEmployerEarlyCareers] = useState<number | undefined>();
 
-  // Security logging for form interactions
-  const logFormEvent = (event: string, details?: Record<string, unknown>) => {
-    logSecurityEvent(`waitlist_form_${event}`, {
-      tab: activeTab,
-      ...details
-    });
-  };
-
-  const handleCandidateSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-
-    // Log form submission attempt
-    logFormEvent('submission_attempt', { type: 'candidate' });
-
-    // Rate limiting check
-    if (!checkRateLimit('waitlist-submission', ADMIN_CONFIG.RATE_LIMIT.WAITLIST_SUBMISSION)) {
-      setError('Please wait a moment before submitting again.');
-      setLoading(false);
-      logFormEvent('rate_limit_exceeded', { type: 'candidate' });
-      return;
-    }
-
-    // Input validation and sanitization
-    const sanitizedName = sanitizeInput(candidateForm.name);
-    const sanitizedEmail = candidateForm.email.trim().toLowerCase();
-    const sanitizedDescription = candidateForm.fieldDescription ? sanitizeInput(candidateForm.fieldDescription) : '';
-
-    // Validate name using security utilities
-    const nameValidation = validateName(sanitizedName);
-    if (!nameValidation.isValid) {
-      setError(nameValidation.error || 'Invalid name');
-      setLoading(false);
-      logFormEvent('validation_error', { type: 'candidate', field: 'name', error: nameValidation.error });
-      return;
-    }
-
-    if (!sanitizedEmail || !candidateForm.currentState || !candidateForm.fieldOfStudy) {
-      setError('Please fill in all required fields.');
-      setLoading(false);
-      logFormEvent('validation_error', { type: 'candidate', field: 'required_fields' });
-      return;
-    }
-
-    if (!validateEmail(sanitizedEmail)) {
-      setError('Please enter a valid email address.');
-      setLoading(false);
-      logFormEvent('validation_error', { type: 'candidate', field: 'email' });
-      return;
-    }
-
-    try {
-      // Submit via secure API endpoint
-      const result = await submitWaitlistEntry('candidate', {
-        name: sanitizedName,
-        email: sanitizedEmail,
-        currentState: candidateForm.currentState,
-        fieldOfStudy: candidateForm.fieldOfStudy,
-        fieldDescription: candidateForm.fieldOfStudy === 'Other' ? sanitizedDescription : undefined
-      });
-
-      setSuccess('candidate');
-      logFormEvent('success', { type: 'candidate', email: sanitizedEmail });
-      toast({
-        title: "Welcome to our candidate waitlist!",
-        description: "We'll be in touch when opportunities arise.",
-      });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-      setError(errorMessage);
-      
-      if (errorMessage.includes('already registered')) {
-        logFormEvent('duplicate_email', { type: 'candidate', email: sanitizedEmail });
-      } else {
-        logFormEvent('api_error', { type: 'candidate', error: errorMessage });
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
-
+  // Employer form submission
   const handleEmployerSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
     setLoading(true);
-    setError('');
-
-    // Input validation and sanitization
-    const sanitizedName = sanitizeInput(employerForm.name);
-    const sanitizedEmail = employerForm.email.trim().toLowerCase();
-    const sanitizedRoleOther = employerForm.roleOther ? sanitizeInput(employerForm.roleOther) : '';
-    
-    if (!sanitizedName || !sanitizedEmail || !employerForm.role) {
-      setError('Please fill in all required fields.');
-      setLoading(false);
-      return;
-    }
-
-    if (!validateEmail(sanitizedEmail)) {
-      setError('Please enter a valid email address.');
-      setLoading(false);
-      return;
-    }
-
-    if (employerForm.role === 'Other' && !sanitizedRoleOther) {
-      setError('Please specify your role.');
-      setLoading(false);
-      return;
-    }
-
-    const earlyCareersNum = employerForm.earlyCareersPerYear ? parseInt(employerForm.earlyCareersPerYear) : null;
-    if (employerForm.earlyCareersPerYear && (isNaN(earlyCareersNum!) || earlyCareersNum! < 0)) {
-      setError('Please enter a valid number for early careers hired per year.');
-      setLoading(false);
-      return;
-    }
 
     try {
-      // Submit via secure API endpoint
-      const result = await submitWaitlistEntry('employer', {
-        name: sanitizedName,
-        email: sanitizedEmail,
-        role: employerForm.role === 'Other' ? sanitizedRoleOther : employerForm.role,
-        roleOther: employerForm.role === 'Other' ? sanitizedRoleOther : undefined,
-        earlyCareersPerYear: earlyCareersNum || undefined
-      });
-
-      setSuccess('employer');
-      logFormEvent('success', { type: 'employer', email: sanitizedEmail });
-      toast({
-        title: "Welcome to our employer waitlist!",
-        description: "We'll reach out to discuss partnership opportunities.",
-      });
-    } catch (err: unknown) {
-      const errorMessage = err instanceof Error ? err.message : 'Something went wrong. Please try again.';
-      setError(errorMessage);
-      
-      if (errorMessage.includes('already registered')) {
-        logFormEvent('duplicate_email', { type: 'employer', email: sanitizedEmail });
-      } else {
-        logFormEvent('api_error', { type: 'employer', error: errorMessage });
+      // Basic validation
+      if (!employerName.trim() || !employerEmail.trim() || !employerIndustry || !employerCompanySize) {
+        throw new Error('Please fill in all required fields');
       }
+
+      // Email validation
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(employerEmail)) {
+        throw new Error('Please enter a valid email address');
+      }
+
+      // Early careers validation
+      if (employerEarlyCareers !== undefined && (employerEarlyCareers < 0 || employerEarlyCareers > 10000)) {
+        throw new Error('Please enter a valid number of early career hires per year');
+      }
+
+      // Sanitize inputs
+      const sanitizedData = {
+        name: employerName.trim().slice(0, 100),
+        email: employerEmail.trim().toLowerCase(),
+        industry: employerIndustry.trim().slice(0, 100),
+        company_size: employerCompanySize.trim().slice(0, 100),
+        early_career_hires_per_year: employerEarlyCareers
+      };
+
+      // Submit to API
+      await submitWaitlistEntry('employer', sanitizedData);
+      
+      setSuccess(true);
+      console.log('✅ Employer submission successful');
+      
+    } catch (err) {
+      console.error('❌ Employer submission error:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setLoading(false);
     }
@@ -193,19 +69,33 @@ const ComprehensiveWaitlistForm = () => {
 
   if (success) {
     return (
-      <section id="waitlist-form" className="py-20 bg-fynda-blue-50">
-        <div className="container mx-auto px-6">
-          <div className="max-w-md mx-auto">
-            <div className="bg-card rounded-2xl shadow-medium p-8 text-center space-y-4">
-              <CheckCircle className="h-12 w-12 text-green-500 mx-auto" />
-              <h3 className="text-lg font-semibold">You're on the list!</h3>
-              <p className="text-muted-foreground">
-                {success === 'candidate' 
-                  ? "Thanks for joining our candidate waitlist. We'll notify you when opportunities arise!"
-                  : "Thanks for joining our employer waitlist. We'll be in touch to discuss partnership opportunities!"
-                }
-              </p>
+      <section id="waitlist-form" className="py-20 bg-gradient-to-br from-primary/5 to-background">
+        <div className="container mx-auto px-4">
+          <div className="max-w-2xl mx-auto text-center">
+            <div className="flex items-center justify-center mb-6">
+              <div className="bg-green-100 p-3 rounded-full">
+                <CheckCircle2 className="h-8 w-8 text-green-600" />
+              </div>
             </div>
+            <h2 className="text-3xl font-bold mb-4">Thank You!</h2>
+            <p className="text-lg text-muted-foreground mb-8">
+              You've been added to our employer waitlist. We'll be in touch soon to help you find top early-career talent.
+            </p>
+            <Button 
+              onClick={() => {
+                setSuccess(false);
+                // Reset all form fields
+                setEmployerName('');
+                setEmployerEmail('');
+                setEmployerIndustry('');
+                setEmployerCompanySize('');
+                setEmployerEarlyCareers(undefined);
+                setError(null);
+              }}
+              variant="outline"
+            >
+              Submit Another Entry
+            </Button>
           </div>
         </div>
       </section>
@@ -213,265 +103,128 @@ const ComprehensiveWaitlistForm = () => {
   }
 
   return (
-    <section id="waitlist-form" className="py-20 bg-fynda-blue-50">
-      <div className="container mx-auto px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-10">
-            <h2 className="text-4xl font-bold text-foreground mb-4">
-              Join the Waitlist
-            </h2>
+    <section id="waitlist-form" className="py-20 bg-gradient-to-br from-primary/5 to-background">
+      <div className="container mx-auto px-4">
+        <div className="max-w-2xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">Join the Waitlist</h2>
             <p className="text-xl text-muted-foreground">
-              Be the first to know when Fynda launches
+              Be the first to experience the future of early-career talent discovery
             </p>
           </div>
 
-          {/* Tab Selection */}
-          <div className="mb-8">
-            <RadioGroup
-              value={activeTab}
-              onValueChange={(value: string) => setActiveTab(value as 'candidate' | 'employer')}
-              className="grid grid-cols-2 gap-4 max-w-md mx-auto"
-            >
-              <div>
-                <RadioGroupItem value="candidate" id="candidate" className="peer sr-only" />
-                <Label
-                  htmlFor="candidate"
-                  className="flex flex-col items-center justify-center space-y-2 rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
-                >
-                  <Users className="h-6 w-6" />
-                  <span className="font-medium">I'm a Candidate</span>
-                </Label>
-              </div>
-              <div>
-                <RadioGroupItem value="employer" id="employer" className="peer sr-only" />
-                <Label
-                  htmlFor="employer"
-                  className="flex flex-col items-center justify-center space-y-2 rounded-xl border-2 border-muted bg-card p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all"
-                >
-                  <Building2 className="h-6 w-6" />
-                  <span className="font-medium">I'm an Employer</span>
-                </Label>
-              </div>
-            </RadioGroup>
-          </div>
+          {/* Error Display */}
+          {error && (
+            <Alert variant="destructive" className="mb-6">
+              <AlertCircle className="h-4 w-4" />
+              <AlertDescription>{error}</AlertDescription>
+            </Alert>
+          )}
 
-          {/* Forms */}
-          <div className="bg-card rounded-2xl shadow-medium p-8">
-            {activeTab === 'candidate' ? (
-              <Card className="border-none shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Users className="h-5 w-5" />
-                    Candidate Registration
-                  </CardTitle>
-                  <CardDescription>
-                    Join our talent pool and get matched with progressive employers
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleCandidateSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="candidateName">Full Name</Label>
-                        <Input
-                          id="candidateName"
-                          type="text"
-                          value={candidateForm.name}
-                          onChange={(e) => setCandidateForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Enter your full name"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="candidateEmail">Email</Label>
-                        <Input
-                          id="candidateEmail"
-                          type="email"
-                          value={candidateForm.email}
-                          onChange={(e) => setCandidateForm(prev => ({ ...prev, email: e.target.value }))}
-                          placeholder="Enter your email address"
-                          required
-                        />
-                      </div>
-                    </div>
+          {/* Employer Form */}
+          <Card className="relative">
+            <CardHeader>
+              <CardTitle>Employer Registration</CardTitle>
+              <CardDescription>
+                Connect with top early-career talent and build your future workforce
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleEmployerSubmit} className="space-y-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="employer-name">Full Name *</Label>
+                    <Input
+                      id="employer-name"
+                      type="text"
+                      value={employerName}
+                      onChange={(e) => setEmployerName(e.target.value)}
+                      placeholder="Enter your full name"
+                      required
+                      maxLength={100}
+                    />
+                  </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="currentState">Current State</Label>
-                        <Select 
-                          value={candidateForm.currentState} 
-                          onValueChange={(value) => setCandidateForm(prev => ({ ...prev, currentState: value }))}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your current state" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="final_year">Final Year Student</SelectItem>
-                            <SelectItem value="fresh_graduate">Fresh Graduate</SelectItem>
-                            <SelectItem value="early_career">Early Career (0-3 years)</SelectItem>
-                            <SelectItem value="student">Student</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="fieldOfStudy">Field of Study</Label>
-                        <Select 
-                          value={candidateForm.fieldOfStudy} 
-                          onValueChange={(value) => setCandidateForm(prev => ({ ...prev, fieldOfStudy: value }))}
-                          required
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select your field" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Software Engineering">Software Engineering</SelectItem>
-                            <SelectItem value="Data Analytics">Data Analytics</SelectItem>
-                            <SelectItem value="Data Science">Data Science</SelectItem>
-                            <SelectItem value="Computer Science">Computer Science</SelectItem>
-                            <SelectItem value="Other">Other</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="employer-email">Work Email Address *</Label>
+                    <Input
+                      id="employer-email"
+                      type="email"
+                      value={employerEmail}
+                      onChange={(e) => setEmployerEmail(e.target.value)}
+                      placeholder="your.email@company.com"
+                      required
+                    />
+                  </div>
+                </div>
 
-                    {candidateForm.fieldOfStudy === 'Other' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="fieldDescription">Please describe your field of study</Label>
-                        <Textarea
-                          id="fieldDescription"
-                          value={candidateForm.fieldDescription}
-                          onChange={(e) => setCandidateForm(prev => ({ ...prev, fieldDescription: e.target.value }))}
-                          placeholder="Tell us about your field of study..."
-                          className="min-h-[100px]"
-                          required={candidateForm.fieldOfStudy === 'Other'}
-                        />
-                      </div>
-                    )}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="employer-industry">Industry *</Label>
+                    <Select value={employerIndustry} onValueChange={setEmployerIndustry} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select your industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Technology">Technology</SelectItem>
+                        <SelectItem value="Healthcare">Healthcare</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                        <SelectItem value="Education">Education</SelectItem>
+                        <SelectItem value="Manufacturing">Manufacturing</SelectItem>
+                        <SelectItem value="Retail">Retail</SelectItem>
+                        <SelectItem value="Consulting">Consulting</SelectItem>
+                        <SelectItem value="Media">Media</SelectItem>
+                        <SelectItem value="Non-profit">Non-profit</SelectItem>
+                        <SelectItem value="Government">Government</SelectItem>
+                        <SelectItem value="Other">Other</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
+                  <div className="space-y-2">
+                    <Label htmlFor="employer-company-size">Company Size *</Label>
+                    <Select value={employerCompanySize} onValueChange={setEmployerCompanySize} required>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select company size" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="1-10">1-10 employees</SelectItem>
+                        <SelectItem value="11-50">11-50 employees</SelectItem>
+                        <SelectItem value="51-200">51-200 employees</SelectItem>
+                        <SelectItem value="201-500">201-500 employees</SelectItem>
+                        <SelectItem value="501-1000">501-1000 employees</SelectItem>
+                        <SelectItem value="1000+">1000+ employees</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
 
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-gradient-primary" 
-                      disabled={loading}
-                    >
-                      {loading ? 'Joining...' : 'Join Candidate Waitlist'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            ) : (
-              <Card className="border-none shadow-none">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Building2 className="h-5 w-5" />
-                    Employer Registration
-                  </CardTitle>
-                  <CardDescription>
-                    Partner with us to find exceptional early-career talent
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <form onSubmit={handleEmployerSubmit} className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <Label htmlFor="employerName">Full Name</Label>
-                        <Input
-                          id="employerName"
-                          type="text"
-                          value={employerForm.name}
-                          onChange={(e) => setEmployerForm(prev => ({ ...prev, name: e.target.value }))}
-                          placeholder="Enter your full name"
-                          required
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor="employerEmail">Email</Label>
-                        <Input
-                          id="employerEmail"
-                          type="email"
-                          value={employerForm.email}
-                          onChange={(e) => setEmployerForm(prev => ({ ...prev, email: e.target.value }))}
-                          placeholder="Enter your email address"
-                          required
-                        />
-                      </div>
-                    </div>
+                <div className="space-y-2">
+                  <Label htmlFor="employer-early-careers">How many early career professionals do you hire per year? (Optional)</Label>
+                  <Input
+                    id="employer-early-careers"
+                    type="number"
+                    min="0"
+                    max="10000"
+                    value={employerEarlyCareers || ''}
+                    onChange={(e) => setEmployerEarlyCareers(e.target.value ? parseInt(e.target.value) : undefined)}
+                    placeholder="e.g., 5"
+                  />
+                </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="role">Role</Label>
-                      <Select 
-                        value={employerForm.role} 
-                        onValueChange={(value) => setEmployerForm(prev => ({ ...prev, role: value }))}
-                        required
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select your role" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="Founder / Co-founder">Founder / Co-founder</SelectItem>
-                          <SelectItem value="CEO / Executive">CEO / Executive</SelectItem>
-                          <SelectItem value="HR Manager">HR Manager</SelectItem>
-                          <SelectItem value="Recruiter / Talent Acquisition">Recruiter / Talent Acquisition</SelectItem>
-                          <SelectItem value="Hiring Manager (non-HR role responsible for a team)">Hiring Manager (non-HR role responsible for a team)</SelectItem>
-                          <SelectItem value="Team Lead / Department Head">Team Lead / Department Head</SelectItem>
-                          <SelectItem value="Startup Operator">Startup Operator</SelectItem>
-                          <SelectItem value="Other">Other (please specify)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-
-                    {employerForm.role === 'Other' && (
-                      <div className="space-y-2">
-                        <Label htmlFor="roleOther">Please specify your role</Label>
-                        <Input
-                          id="roleOther"
-                          type="text"
-                          value={employerForm.roleOther}
-                          onChange={(e) => setEmployerForm(prev => ({ ...prev, roleOther: e.target.value }))}
-                          placeholder="Please specify your role..."
-                          required={employerForm.role === 'Other'}
-                        />
-                      </div>
-                    )}
-
-                    <div className="space-y-2">
-                      <Label htmlFor="earlyCareersPerYear">
-                        How many Early Careers do you hire per year? <span className="text-muted-foreground text-sm">(roughly, optional)</span>
-                      </Label>
-                      <Input
-                        id="earlyCareersPerYear"
-                        type="number"
-                        min="0"
-                        value={employerForm.earlyCareersPerYear}
-                        onChange={(e) => setEmployerForm(prev => ({ ...prev, earlyCareersPerYear: e.target.value }))}
-                        placeholder="e.g. 5"
-                      />
-                    </div>
-
-                    {error && (
-                      <Alert variant="destructive">
-                        <AlertDescription>{error}</AlertDescription>
-                      </Alert>
-                    )}
-
-                    <Button 
-                      type="submit" 
-                      className="w-full bg-gradient-primary" 
-                      disabled={loading}
-                    >
-                      {loading ? 'Joining...' : 'Join Employer Waitlist'}
-                    </Button>
-                  </form>
-                </CardContent>
-              </Card>
-            )}
-          </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Joining Waitlist...
+                    </>
+                  ) : (
+                    'Join Employer Waitlist'
+                  )}
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </section>

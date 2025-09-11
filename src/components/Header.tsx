@@ -22,14 +22,14 @@ const Header = () => {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <div className="flex items-center space-x-3">
-            <img 
-              src={fyndaLogo} 
-              alt="Fynda logo - geometric symbol representing connection and fairness" 
-              className="w-8 h-8 animate-float"
-            />
-            <span className="text-2xl font-bold text-foreground">Fynda</span>
-          </div>
+        <div className="flex items-center space-x-2">
+          <img 
+            src={fyndaLogo} 
+            alt="Fynda Logo" 
+            className="h-8 w-auto"
+          />
+          <span className="text-xl font-bold">Fynda</span>
+        </div>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-8" role="navigation" aria-label="Main navigation">

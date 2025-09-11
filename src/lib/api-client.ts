@@ -1,38 +1,24 @@
 import { supabase } from '@/integrations/supabase/client';
 
-interface WaitlistCandidateData {
-  name: string;
-  email: string;
-  currentState: string;
-  fieldOfStudy: string;
-  fieldDescription?: string;
-}
-
 interface WaitlistEmployerData {
   name: string;
   email: string;
-  role: string;
-  roleOther?: string;
-  earlyCareersPerYear?: number;
+  industry: string;
+  company_size: string;
+  early_career_hires_per_year?: number;
 }
 
 export const submitWaitlistEntry = async (
-  type: 'candidate' | 'employer', 
-  data: WaitlistCandidateData | WaitlistEmployerData
+  type: 'employer', 
+  data: WaitlistEmployerData
 ) => {
   try {
-    // Only support employer type since we only have employers_waitlist table
-    if (type === 'candidate') {
-      throw new Error('Candidate registration is not available yet');
-    }
-    
-    const employerData = data as WaitlistEmployerData;
     const insertData = {
-      name: employerData.name,
-      email: employerData.email,
-      industry: employerData.role || 'Other', // Map role to industry for now
-      company_size: 'Not specified', // Default value
-      early_career_hires_per_year: employerData.earlyCareersPerYear?.toString() || null
+      name: data.name,
+      email: data.email,
+      industry: data.industry,
+      company_size: data.company_size,
+      early_career_hires_per_year: data.early_career_hires_per_year || null
     };
 
     console.log('🔄 Submitting to employers_waitlist:', insertData);
@@ -45,7 +31,7 @@ export const submitWaitlistEntry = async (
     if (error) {
       console.error('❌ Supabase error:', error);
       if (error.code === '23505') {
-        throw new Error(`This email is already registered in our ${type} waitlist!`);
+        throw new Error('This email is already registered in our waitlist!');
       }
       throw new Error(error.message || 'Failed to submit waitlist entry');
     }
@@ -123,7 +109,6 @@ export const getAdminData = async () => {
     if (employersResult.error) throw employersResult.error;
 
     return {
-      candidates: [], // No candidates table available
       employers: employersResult.data || []
     };
   } catch (error) {
