@@ -10,348 +10,67 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "13.0.4"
+    PostgrestVersion: "13.0.5"
   }
   public: {
     Tables: {
-      admin_users: {
-        Row: {
-          created_at: string
-          email: string
-          id: string
-          is_super_admin: boolean | null
-          updated_at: string
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string
-          email: string
-          id?: string
-          is_super_admin?: boolean | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string
-          email?: string
-          id?: string
-          is_super_admin?: boolean | null
-          updated_at?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
       admins: {
         Row: {
-          email: string
-          id: string
-          user_id: string | null
-        }
-        Insert: {
-          email: string
-          id?: string
-          user_id?: string | null
-        }
-        Update: {
-          email?: string
-          id?: string
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      auth_rate_limits: {
-        Row: {
-          attempt_count: number | null
-          blocked_until: string | null
           created_at: string | null
-          email: string | null
-          id: string
-          ip_address: string
-          last_attempt: string | null
-        }
-        Insert: {
-          attempt_count?: number | null
-          blocked_until?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          ip_address: string
-          last_attempt?: string | null
-        }
-        Update: {
-          attempt_count?: number | null
-          blocked_until?: string | null
-          created_at?: string | null
-          email?: string | null
-          id?: string
-          ip_address?: string
-          last_attempt?: string | null
-        }
-        Relationships: []
-      }
-      security_audit_log: {
-        Row: {
-          action: string
-          created_at: string | null
-          id: string
-          ip_address: string | null
-          new_values: Json | null
-          old_values: Json | null
-          row_id: string | null
-          table_name: string | null
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          action: string
-          created_at?: string | null
-          id?: string
-          ip_address?: string | null
-          new_values?: Json | null
-          old_values?: Json | null
-          row_id?: string | null
-          table_name?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          action?: string
-          created_at?: string | null
-          id?: string
-          ip_address?: string | null
-          new_values?: Json | null
-          old_values?: Json | null
-          row_id?: string | null
-          table_name?: string | null
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      site_settings: {
-        Row: {
-          accent_color: string | null
-          coming_soon_mode: boolean | null
-          created_at: string
-          id: string
-          logo_url: string | null
-          primary_color: string | null
-          secondary_color: string | null
-          site_description: string | null
-          site_title: string | null
-          updated_at: string
-        }
-        Insert: {
-          accent_color?: string | null
-          coming_soon_mode?: boolean | null
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          site_description?: string | null
-          site_title?: string | null
-          updated_at?: string
-        }
-        Update: {
-          accent_color?: string | null
-          coming_soon_mode?: boolean | null
-          created_at?: string
-          id?: string
-          logo_url?: string | null
-          primary_color?: string | null
-          secondary_color?: string | null
-          site_description?: string | null
-          site_title?: string | null
-          updated_at?: string
-        }
-        Relationships: []
-      }
-      user_sessions: {
-        Row: {
-          created_at: string | null
-          id: string
-          ip_address: string | null
-          is_active: boolean | null
-          last_activity: string | null
-          session_id: string
-          user_agent: string | null
-          user_id: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          ip_address?: string | null
-          is_active?: boolean | null
-          last_activity?: string | null
-          session_id: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          ip_address?: string | null
-          is_active?: boolean | null
-          last_activity?: string | null
-          session_id?: string
-          user_agent?: string | null
-          user_id?: string | null
-        }
-        Relationships: []
-      }
-      waitlist_analytics_secure: {
-        Row: {
-          new_candidates_last_30d: number | null
-          new_employers_last_30d: number | null
-          total_candidates: number | null
-          total_employers: number | null
-        }
-        Insert: {
-          new_candidates_last_30d?: number | null
-          new_employers_last_30d?: number | null
-          total_candidates?: number | null
-          total_employers?: number | null
-        }
-        Update: {
-          new_candidates_last_30d?: number | null
-          new_employers_last_30d?: number | null
-          total_candidates?: number | null
-          total_employers?: number | null
-        }
-        Relationships: []
-      }
-      waitlist_candidates: {
-        Row: {
-          created_at: string
-          current_state: string
-          email: string
-          field_description: string | null
-          field_of_study: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          current_state: string
-          email: string
-          field_description?: string | null
-          field_of_study: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          current_state?: string
-          email?: string
-          field_description?: string | null
-          field_of_study?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
-      waitlist_employers: {
-        Row: {
-          created_at: string
-          early_careers_per_year: number | null
           email: string
           id: string
-          name: string
           role: string
         }
         Insert: {
-          created_at?: string
-          early_careers_per_year?: number | null
+          created_at?: string | null
           email: string
           id?: string
-          name: string
           role?: string
         }
         Update: {
-          created_at?: string
-          early_careers_per_year?: number | null
+          created_at?: string | null
           email?: string
           id?: string
-          name?: string
           role?: string
+        }
+        Relationships: []
+      }
+      employers_waitlist: {
+        Row: {
+          company_size: string
+          created_at: string | null
+          early_career_hires_per_year: string | null
+          email: string
+          id: string
+          industry: string
+          name: string
+        }
+        Insert: {
+          company_size: string
+          created_at?: string | null
+          early_career_hires_per_year?: string | null
+          email: string
+          id?: string
+          industry: string
+          name: string
+        }
+        Update: {
+          company_size?: string
+          created_at?: string | null
+          early_career_hires_per_year?: string | null
+          email?: string
+          id?: string
+          industry?: string
+          name?: string
         }
         Relationships: []
       }
     }
     Views: {
-      analytics_cumulative_growth: {
-        Row: {
-          cumulative_candidates: number | null
-          cumulative_employers: number | null
-          cumulative_total: number | null
-          month: string | null
-        }
-        Relationships: []
-      }
-      analytics_monthly_candidate_states: {
-        Row: {
-          count: number | null
-          current_state: string | null
-          month: string | null
-        }
-        Relationships: []
-      }
-      analytics_monthly_candidates: {
-        Row: {
-          candidate_signups: number | null
-          month: string | null
-        }
-        Relationships: []
-      }
-      analytics_monthly_employer_roles: {
-        Row: {
-          count: number | null
-          month: string | null
-          role: string | null
-        }
-        Relationships: []
-      }
-      analytics_monthly_employers: {
-        Row: {
-          employer_signups: number | null
-          month: string | null
-        }
-        Relationships: []
-      }
-      analytics_monthly_growth: {
-        Row: {
-          candidate_signups: number | null
-          employer_signups: number | null
-          month: string | null
-          total_signups: number | null
-        }
-        Relationships: []
-      }
+      [_ in never]: never
     }
     Functions: {
-      create_admin_user: {
-        Args: { admin_email: string; admin_password?: string }
-        Returns: string
-      }
-      is_admin: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
-      log_auth_attempt: {
-        Args: { p_email?: string; p_ip_address: string }
-        Returns: undefined
-      }
-      log_security_event: {
-        Args: {
-          p_action: string
-          p_new_values?: Json
-          p_old_values?: Json
-          p_row_id?: string
-          p_table_name?: string
-        }
-        Returns: undefined
-      }
+      [_ in never]: never
     }
     Enums: {
       [_ in never]: never
