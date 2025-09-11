@@ -38,8 +38,8 @@ export type Database = {
       employers_waitlist: {
         Row: {
           company_size: string
-          created_at: string | null
-          early_career_hires_per_year: string | null
+          created_at: string
+          early_career_hires_per_year: number | null
           email: string
           id: string
           industry: string
@@ -47,8 +47,8 @@ export type Database = {
         }
         Insert: {
           company_size: string
-          created_at?: string | null
-          early_career_hires_per_year?: string | null
+          created_at?: string
+          early_career_hires_per_year?: number | null
           email: string
           id?: string
           industry: string
@@ -56,8 +56,8 @@ export type Database = {
         }
         Update: {
           company_size?: string
-          created_at?: string | null
-          early_career_hires_per_year?: string | null
+          created_at?: string
+          early_career_hires_per_year?: number | null
           email?: string
           id?: string
           industry?: string
