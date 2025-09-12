@@ -1,16 +1,8 @@
 import { useState, useEffect, createContext, useContext, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
-import { authenticateAdmin } from '@/lib/api-client';
-
-interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isAdmin: boolean;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<{ error: any }>;
-  signOut: () => Promise<void>;
-}
+import { AuthContextType } from '@/types/auth';
+import { logAuth, logSecurity } from '@/utils/logger';
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
@@ -21,12 +13,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    console.log('🔐 useAuth: Setting up auth state...');
+    logAuth('Setting up auth state...');
     
     // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log('🔐 Auth state change:', event, 'Session:', !!session);
+        logAuth('Auth state change', { event, hasSession: !!session });
         setSession(session);
         setUser(session?.user ?? null);
 
@@ -44,13 +36,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
             
             if (isAdminUser) {
               localStorage.setItem('fynda-admin', 'true');
+              logSecurity('admin_status_granted', { email: session.user.email });
             } else {
               localStorage.removeItem('fynda-admin');
+              logSecurity('admin_status_denied', { email: session.user.email });
             }
-            
-            console.log('🔐 Admin status updated:', isAdminUser);
           } catch (error) {
-            console.log('🔐 User is not an admin');
+            logAuth('User is not an admin');
             setIsAdmin(false);
             localStorage.removeItem('fynda-admin');
           }
@@ -65,7 +57,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
     // Check initial session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      console.log('🔐 Initial session check:', !!session);
+      logAuth('Initial session check', { hasSession: !!session });
       if (!session) {
         setLoading(false);
       }
@@ -76,23 +68,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      console.log('🔐 useAuth signIn called');
+      logAuth('SignIn attempt started');
+      logSecurity('login_attempt', { email });
       
-      // Use Supabase auth directly instead of custom API
+      // Use Supabase auth directly
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
       
       if (error) {
-        console.error('🔐 Supabase signIn error:', error);
+        logAuth('SignIn error', { error: error.message });
+        logSecurity('login_failed', { email, error: error.message });
         return { error };
       }
       
-      console.log('🔐 SignIn successful, auth state will update via listener');
+      logAuth('SignIn successful');
+      logSecurity('login_success', { email });
       return { error: null };
     } catch (error: any) {
-      console.error('🔐 useAuth signIn error:', error);
+      logAuth('SignIn error', { error: error.message });
+      logSecurity('login_error', { email, error: error.message });
       return { error };
     }
   };

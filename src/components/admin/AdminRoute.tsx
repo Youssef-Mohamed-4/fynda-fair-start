@@ -1,7 +1,8 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useEffect, useState } from 'react';
-import { hasAdminAccess, logSecurityEvent, getSecurityConfig } from '@/utils/security';
+import { hasAdminAccess, getSecurityConfig } from '@/utils/securityConfig';
+import { logSecurity, logger } from '@/utils/logger';
 
 interface AdminRouteProps {
   children: React.ReactNode;
@@ -34,21 +35,17 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
         const securityConfig = getSecurityConfig();
         const localAdminAccess = hasAdminAccess();
         
-        setLocalStorageAdmin(localAdminAccess);
+        setLocalStorageAdmin(localAdminAccess && securityConfig.allowLocalStorageAdmin);
         setEnvAdmin(securityConfig.adminMode);
         
         // Log security event
-        logSecurityEvent('admin_access_check', {
+        logSecurity('admin_access_check', {
           hasLocalAccess: localAdminAccess,
           hasEnvAccess: securityConfig.adminMode,
           isDevelopment: securityConfig.isDevelopment
         });
-        
-        if (localAdminAccess || securityConfig.adminMode) {
-          console.log('🔐 AdminRoute: Admin access detected via fallback methods');
-        }
       } catch (error) {
-        console.error('🔐 AdminRoute: Error checking admin access:', error);
+        logger.error('Error checking admin access', { error }, 'ADMIN');
         setLocalStorageAdmin(false);
         setEnvAdmin(false);
       }
@@ -57,21 +54,8 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
     checkAdminAccess();
   }, []);
 
-  // Debug logging for security monitoring
-  useEffect(() => {
-    console.log('🔐 AdminRoute: Access attempt -', {
-      user: !!user,
-      isAdmin,
-      localStorageAdmin,
-      envAdmin,
-      loading,
-      timestamp: new Date().toISOString()
-    });
-  }, [user, isAdmin, localStorageAdmin, envAdmin, loading]);
-
   // Show loading spinner while checking authentication
   if (loading) {
-    console.log('🔐 AdminRoute: Still loading authentication state...');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="text-center">
@@ -87,13 +71,13 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
 
   // If no user is authenticated, redirect to login
   if (!user) {
-    console.log('🔐 AdminRoute: No authenticated user, redirecting to login');
+    logger.info('Admin route access denied - no user', undefined, 'ADMIN');
     return <Navigate to="/login" replace />;
   }
 
   // If user is authenticated but not admin, show access denied
   if (!hasUserAdminAccess) {
-    console.log('🔐 AdminRoute: User authenticated but not admin, showing access denied');
+    logger.info('Admin route access denied - not admin', undefined, 'ADMIN');
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
         <div className="text-center max-w-md">
@@ -141,7 +125,7 @@ const AdminRoute = ({ children }: AdminRouteProps) => {
   }
 
   // User has admin access, render the protected content
-  console.log('🔐 AdminRoute: Admin access granted, rendering protected content');
+  logger.info('Admin route access granted', undefined, 'ADMIN');
   return <>{children}</>;
 };
 

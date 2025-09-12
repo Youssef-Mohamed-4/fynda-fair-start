@@ -3,12 +3,6 @@ import { AdminSidebar } from "@/components/admin/AdminSidebar";
 import { Outlet } from "react-router-dom";
 
 export default function AdminLayout() {
-  // Debug logging for admin layout rendering
-  console.log('🔐 AdminLayout: Rendering admin layout (authentication already handled by AdminProtected)');
-
-  // Note: Authentication is now handled by AdminProtected component
-  // No need for duplicate auth checks here
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full">

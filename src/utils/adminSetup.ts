@@ -5,23 +5,35 @@
  * and managing admin configurations in development and production.
  */
 
-import { setAdminFlag, logSecurityEvent } from './security';
+import { setAdminFlag, getSecurityConfig } from '@/utils/securityConfig';
+import { logSecurity } from '@/utils/logger';
 
 /**
  * Quick admin setup for development
- * Call this function in browser console to enable admin access
+ * Only works in development mode for security
  */
 export const enableAdminAccess = (): void => {
+  const config = getSecurityConfig();
+  
+  if (!config.isDevelopment) {
+    console.warn('🔐 Admin Setup: Admin utilities are disabled in production for security');
+    return;
+  }
+
   try {
-    setAdminFlag(true);
-    console.log('🔐 Admin Setup: Admin access enabled via localStorage');
-    console.log('🔐 Admin Setup: You can now access /admin route');
-    console.log('🔐 Admin Setup: Refresh the page to apply changes');
-    
-    logSecurityEvent('admin_setup_enabled', {
-      method: 'localStorage',
-      timestamp: new Date().toISOString()
-    });
+    const success = setAdminFlag(true);
+    if (success) {
+      console.log('🔐 Admin Setup: Admin access enabled via localStorage');
+      console.log('🔐 Admin Setup: You can now access /admin route');
+      console.log('🔐 Admin Setup: Refresh the page to apply changes');
+      
+      logSecurity('admin_setup_enabled', {
+        method: 'localStorage',
+        timestamp: new Date().toISOString()
+      });
+    } else {
+      console.warn('🔐 Admin Setup: Could not enable admin access');
+    }
   } catch (error) {
     console.error('🔐 Admin Setup: Error enabling admin access:', error);
   }
@@ -31,15 +43,24 @@ export const enableAdminAccess = (): void => {
  * Disable admin access
  */
 export const disableAdminAccess = (): void => {
+  const config = getSecurityConfig();
+  
+  if (!config.isDevelopment) {
+    console.warn('🔐 Admin Setup: Admin utilities are disabled in production for security');
+    return;
+  }
+
   try {
-    setAdminFlag(false);
-    console.log('🔐 Admin Setup: Admin access disabled');
-    console.log('🔐 Admin Setup: Refresh the page to apply changes');
-    
-    logSecurityEvent('admin_setup_disabled', {
-      method: 'localStorage',
-      timestamp: new Date().toISOString()
-    });
+    const success = setAdminFlag(false);
+    if (success) {
+      console.log('🔐 Admin Setup: Admin access disabled');
+      console.log('🔐 Admin Setup: Refresh the page to apply changes');
+      
+      logSecurity('admin_setup_disabled', {
+        method: 'localStorage',
+        timestamp: new Date().toISOString()
+      });
+    }
   } catch (error) {
     console.error('🔐 Admin Setup: Error disabling admin access:', error);
   }
@@ -74,14 +95,19 @@ export const checkAdminStatus = (): void => {
  * Only available in development mode
  */
 export const setupDevelopmentHelpers = (): void => {
-  if (import.meta.env.DEV) {
-    // Make admin functions available in browser console
-    (window as any).fyndaAdmin = {
-      enable: enableAdminAccess,
-      disable: disableAdminAccess,
-      status: checkAdminStatus,
-      help: () => {
-        console.log(`
+  const config = getSecurityConfig();
+  
+  if (!config.isDevelopment) {
+    return; // Silently exit in production
+  }
+
+  // Make admin functions available in browser console
+  (window as any).fyndaAdmin = {
+    enable: enableAdminAccess,
+    disable: disableAdminAccess,
+    status: checkAdminStatus,
+    help: () => {
+      console.log(`
 🔐 Fynda Admin Console Help:
 
 Available commands:
@@ -93,19 +119,19 @@ Available commands:
 Admin access methods:
 1. localStorage: fyndaAdmin.enable()
 2. Environment: Set VITE_ADMIN_MODE=true in .env.local
-3. Database: Add your email to admin_users table in Supabase
+3. Database: Add your email to admins table in Supabase
 
 After enabling admin access, refresh the page and navigate to /admin
-        `);
-      }
-    };
-    
-    console.log('🔐 Admin Setup: Development helpers loaded');
-    console.log('🔐 Admin Setup: Type "fyndaAdmin.help()" for available commands');
-  }
+      `);
+    }
+  };
+  
+  console.log('🔐 Admin Setup: Development helpers loaded');
+  console.log('🔐 Admin Setup: Type "fyndaAdmin.help()" for available commands');
 };
 
 // Auto-setup development helpers in development mode
-if (import.meta.env.DEV) {
+const config = getSecurityConfig();
+if (config.isDevelopment) {
   setupDevelopmentHelpers();
 }

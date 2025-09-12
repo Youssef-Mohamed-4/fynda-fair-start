@@ -1,12 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
-
-interface WaitlistEmployerData {
-  name: string;
-  email: string;
-  industry: string;
-  company_size: string;
-  early_career_hires_per_year?: number;
-}
+import { WaitlistEmployerData, AdminData } from '@/types/auth';
+import { logAuth, logSecurity, logger } from '@/utils/logger';
 
 export const submitWaitlistEntry = async (
   type: 'employer', 
@@ -21,7 +15,7 @@ export const submitWaitlistEntry = async (
       early_career_hires_per_year: data.early_career_hires_per_year || null
     };
 
-    console.log('🔄 Submitting to employers_waitlist:', insertData);
+    logger.info('Submitting to employers waitlist');
 
     const { data: result, error } = await supabase
       .from('employers_waitlist')
@@ -29,14 +23,14 @@ export const submitWaitlistEntry = async (
       .select();
 
     if (error) {
-      console.error('❌ Supabase error:', error);
+      logger.error('Waitlist submission error', { code: error.code, message: error.message });
       if (error.code === '23505') {
         throw new Error('This email is already registered in our waitlist!');
       }
       throw new Error(error.message || 'Failed to submit waitlist entry');
     }
 
-    console.log('✅ Waitlist entry submitted successfully:', result);
+    logger.info('Waitlist entry submitted successfully');
     return { success: true, data: result };
   } catch (error) {
     console.error('❌ Waitlist submission error:', error);
@@ -46,16 +40,18 @@ export const submitWaitlistEntry = async (
 
 export const authenticateAdmin = async (email: string, password: string) => {
   try {
-    console.log('🔐 Attempting admin login for:', email);
+    logAuth('Admin authentication attempt');
+    logSecurity('admin_login_attempt', { email });
     
     // First authenticate with Supabase Auth
     const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
       email,
-      password,
+      password
     });
 
     if (authError) {
-      console.error('🔐 Supabase auth error:', authError);
+      logAuth('Admin auth error', { error: authError.message });
+      logSecurity('admin_login_failed', { email, error: authError.message });
       throw new Error(authError.message);
     }
 
@@ -63,7 +59,7 @@ export const authenticateAdmin = async (email: string, password: string) => {
       throw new Error('Authentication failed - no user returned');
     }
 
-    console.log('🔐 Auth successful, checking admin status...');
+    logAuth('Auth successful, checking admin status...');
 
     // Check if user is admin
     const { data: adminUser, error: adminError } = await supabase
@@ -73,12 +69,14 @@ export const authenticateAdmin = async (email: string, password: string) => {
       .single();
 
     if (adminError || !adminUser) {
-      console.error('🔐 Admin check error:', adminError);
+      logAuth('Admin check failed');
+      logSecurity('admin_access_denied', { email });
       await supabase.auth.signOut(); // Clean up auth session
       throw new Error('Admin user not found. Please contact your administrator.');
     }
 
-    console.log('🔐 Admin user found:', adminUser);
+    logAuth('Admin user authenticated successfully');
+    logSecurity('admin_login_success', { email, role: adminUser.role });
     localStorage.setItem('fynda-admin', 'true');
 
     return {
@@ -91,7 +89,7 @@ export const authenticateAdmin = async (email: string, password: string) => {
       }
     };
   } catch (error) {
-    console.error('🔐 Admin authentication error:', error);
+    logAuth('Admin authentication error', { error });
     throw error;
   }
 };
@@ -99,20 +97,26 @@ export const authenticateAdmin = async (email: string, password: string) => {
 /**
  * Get admin data from Supabase
  */
-export const getAdminData = async () => {
+export const getAdminData = async (): Promise<AdminData> => {
   try {
+    logger.info('Fetching admin data');
+
     const employersResult = await supabase
       .from('employers_waitlist')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (employersResult.error) throw employersResult.error;
+    if (employersResult.error) {
+      logger.error('Admin data fetch error', { error: employersResult.error });
+      throw employersResult.error;
+    }
 
+    logger.info('Admin data fetched successfully');
     return {
       employers: employersResult.data || []
     };
   } catch (error) {
-    console.error('Admin data fetch error:', error);
+    logger.error('Admin data fetch error', { error });
     throw error;
   }
 };

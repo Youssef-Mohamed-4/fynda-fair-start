@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
+import { logger } from '@/utils/logger';
 
 interface AdminProtectedProps {
   children: React.ReactNode;
@@ -8,11 +9,7 @@ interface AdminProtectedProps {
 const AdminProtected = ({ children }: AdminProtectedProps) => {
   const { user, isAdmin, loading } = useAuth();
 
-  // Debug logging for authentication flow
-  console.log('🔐 AdminProtected: loading:', loading, 'user:', !!user, 'isAdmin:', isAdmin);
-
   if (loading) {
-    console.log('🔐 AdminProtected: Still loading auth state...');
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
@@ -21,12 +18,12 @@ const AdminProtected = ({ children }: AdminProtectedProps) => {
   }
 
   if (!user) {
-    console.log('🔐 AdminProtected: No user found, redirecting to /login');
+    logger.info('Admin access denied - no user', undefined, 'ADMIN');
     return <Navigate to="/login" replace />;
   }
 
   if (!isAdmin) {
-    console.log('🔐 AdminProtected: User found but not admin, showing access denied');
+    logger.info('Admin access denied - not admin', undefined, 'ADMIN');
     return (
       <div className="min-h-screen flex items-center justify-center p-4">
         <div className="text-center">
@@ -45,7 +42,6 @@ const AdminProtected = ({ children }: AdminProtectedProps) => {
     );
   }
 
-  console.log('🔐 AdminProtected: User is authenticated and admin, rendering children');
   return <>{children}</>;
 };
 

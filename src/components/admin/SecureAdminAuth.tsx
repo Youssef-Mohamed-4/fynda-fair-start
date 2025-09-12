@@ -10,7 +10,6 @@
  */
 
 import { useState, useEffect } from 'react';
-import { Navigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,7 +17,8 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { authenticateAdmin, isAdminAuthenticated, logoutAdmin } from '@/lib/api-client';
 import { useToast } from '@/hooks/use-toast';
-import { logSecurityEvent } from '@/utils/security';
+import { logSecurity, logger } from '@/utils/logger';
+import { getSecurityConfig } from '@/utils/securityConfig';
 
 interface SecureAdminAuthProps {
   children: React.ReactNode;
@@ -42,18 +42,14 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
         setIsAuthenticated(authenticated);
         
         if (authenticated) {
-          if (import.meta.env.DEV) {
-            console.log('🔐 SecureAdminAuth: Admin already authenticated');
-          }
-          logSecurityEvent('admin_auth_check', { status: 'authenticated' });
+          logger.info('Admin already authenticated', undefined, 'ADMIN');
+          logSecurity('admin_auth_check', { status: 'authenticated' });
         } else {
-          if (import.meta.env.DEV) {
-            console.log('🔐 SecureAdminAuth: Admin not authenticated');
-          }
-          logSecurityEvent('admin_auth_check', { status: 'not_authenticated' });
+          logger.info('Admin not authenticated', undefined, 'ADMIN');
+          logSecurity('admin_auth_check', { status: 'not_authenticated' });
         }
       } catch (error) {
-        console.error('🔐 SecureAdminAuth: Auth check error:', error);
+        logger.error('Auth check error', { error }, 'ADMIN');
         setIsAuthenticated(false);
       } finally {
         setCheckingAuth(false);
@@ -68,18 +64,14 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
     setLoading(true);
     setError('');
     
-    if (import.meta.env.DEV) {
-      console.log('🔐 SecureAdminAuth: Login attempt started');
-    }
-    logSecurityEvent('admin_login_attempt', { email });
+    logger.info('Admin login attempt started', undefined, 'ADMIN');
+    logSecurity('admin_login_attempt', { email });
 
     try {
       const result = await authenticateAdmin(email, password);
       
-      if (import.meta.env.DEV) {
-        console.log('🔐 SecureAdminAuth: Login successful');
-      }
-      logSecurityEvent('admin_login_success', { email });
+      logger.info('Admin login successful', undefined, 'ADMIN');
+      logSecurity('admin_login_success', { email });
       
       setIsAuthenticated(true);
       toast({
@@ -88,8 +80,8 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
       });
     } catch (err: unknown) {
       const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
-      console.error('🔐 SecureAdminAuth: Login error:', errorMessage);
-      logSecurityEvent('admin_login_failed', { email, error: errorMessage });
+      logger.error('Admin login error', { error: errorMessage }, 'ADMIN');
+      logSecurity('admin_login_failed', { email, error: errorMessage });
       
       setError(errorMessage);
     } finally {
@@ -98,10 +90,8 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
   };
 
   const handleLogout = () => {
-    if (import.meta.env.DEV) {
-      console.log('🔐 SecureAdminAuth: Logout initiated');
-    }
-    logSecurityEvent('admin_logout', {});
+    logger.info('Admin logout initiated', undefined, 'ADMIN');
+    logSecurity('admin_logout', {});
     
     logoutAdmin();
     setIsAuthenticated(false);
@@ -200,13 +190,15 @@ const SecureAdminAuth = ({ children }: SecureAdminAuthProps) => {
             </Button>
           </form>
           
-          <div className="mt-6 p-4 bg-muted rounded-md">
-            <p className="text-sm text-muted-foreground">
-              <strong>Development Access:</strong> You can also enable admin access via:
-              <br />• localStorage: <code>localStorage.setItem('fynda-admin', 'true')</code>
-              <br />• Environment: Set <code>VITE_ADMIN_MODE=true</code>
-            </p>
-          </div>
+          {getSecurityConfig().isDevelopment && (
+            <div className="mt-6 p-4 bg-muted rounded-md">
+              <p className="text-sm text-muted-foreground">
+                <strong>Development Access:</strong> You can also enable admin access via:
+                <br />• localStorage: <code>localStorage.setItem('fynda-admin', 'true')</code>
+                <br />• Environment: Set <code>VITE_ADMIN_MODE=true</code>
+              </p>
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
