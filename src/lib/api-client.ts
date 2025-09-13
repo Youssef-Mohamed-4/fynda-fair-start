@@ -1,39 +1,46 @@
 import { supabase } from '@/integrations/supabase/client';
 import { WaitlistEmployerData, AdminData } from '@/types/auth';
 import { logAuth, logSecurity, logger } from '@/utils/logger';
+import { employerWaitlistSchema } from '@/schemas/waitlist';
 
 export const submitWaitlistEntry = async (
   type: 'employer', 
   data: WaitlistEmployerData
 ) => {
   try {
-    const insertData = {
-      name: data.name,
-      email: data.email,
-      industry: data.industry,
-      company_size: data.company_size,
-      early_career_hires_per_year: data.early_career_hires_per_year || null
-    };
-
-    logger.info('Submitting to employers waitlist');
+    // Validate data with Zod schema
+    const validatedData = employerWaitlistSchema.parse(data);
+    
+    logger.info('Submitting to employers waitlist', { 
+      email: validatedData.email,
+      industry: validatedData.industry 
+    });
 
     const { data: result, error } = await supabase
       .from('employers_waitlist')
-      .insert(insertData)
+      .insert(validatedData)
       .select();
 
     if (error) {
-      logger.error('Waitlist submission error', { code: error.code, message: error.message });
+      logger.error('Waitlist submission error', { 
+        code: error.code, 
+        message: error.message 
+      });
+      
       if (error.code === '23505') {
         throw new Error('This email is already registered in our waitlist!');
       }
+      
       throw new Error(error.message || 'Failed to submit waitlist entry');
     }
 
-    logger.info('Waitlist entry submitted successfully');
+    logger.info('Waitlist entry submitted successfully', { 
+      id: result[0]?.id 
+    });
+    
     return { success: true, data: result };
   } catch (error) {
-    console.error('❌ Waitlist submission error:', error);
+    logger.error('Waitlist submission error', { error });
     throw error;
   }
 };
