@@ -54,12 +54,11 @@ export const employerWaitlistSchema = z.object({
   industry: industrySchema,
   company_size: companySizeSchema,
   early_career_hires_per_year: z
-    .number()
-    .int('Must be a whole number')
-    .min(0, 'Cannot be negative')
-    .max(10000, 'Please enter a reasonable number')
+    .union([
+      z.number().int('Must be a whole number').min(0, 'Cannot be negative').max(10000, 'Please enter a reasonable number'),
+      z.undefined()
+    ])
     .optional()
-    .or(z.literal('').transform(() => undefined))
 });
 
 export type EmployerWaitlistData = z.infer<typeof employerWaitlistSchema>;

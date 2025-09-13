@@ -40,7 +40,10 @@ export const submitWaitlistEntry = async (
     
     return { success: true, data: result };
   } catch (error) {
-    logger.error('Waitlist submission error', { error });
+    // Only log if it's not already a validation error that was logged
+    if (!(error instanceof Error && error.message.includes('email is already registered'))) {
+      logger.error('Waitlist submission error', { error });
+    }
     throw error;
   }
 };
