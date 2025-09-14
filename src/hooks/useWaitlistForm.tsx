@@ -106,14 +106,15 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
   // Validate entire form for submission
   const validateForm = useCallback((): ValidationResult => {
     try {
-      // Prepare data for validation
+      // Prepare data for validation with proper type conversion
+      const earlyCareerValue = formData.early_career_hires_per_year?.toString().trim();
       const dataToValidate = {
         name: formData.name.trim(),
         email: formData.email.trim().toLowerCase(),
         industry: formData.industry,
         company_size: formData.company_size,
-        early_career_hires_per_year: formData.early_career_hires_per_year.trim() 
-          ? parseInt(formData.early_career_hires_per_year.trim(), 10) 
+        early_career_hires_per_year: earlyCareerValue && earlyCareerValue !== '' 
+          ? parseInt(earlyCareerValue, 10) 
           : undefined
       };
 
