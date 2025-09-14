@@ -69,9 +69,7 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
     setFormData(prev => ({ ...prev, [field]: value }));
     
     // Clear error when user starts typing
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
-    }
+    setErrors(prev => ({ ...prev, [field]: undefined }));
     
     // Validate after user stops typing (debounced via setTimeout)
     const timeoutId = setTimeout(() => {
@@ -81,8 +79,9 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
       }
     }, 300);
     
+    // Cleanup timeout on next call
     return () => clearTimeout(timeoutId);
-  }, [errors, validateField]);
+  }, [validateField]);
 
   // Validate entire form
   const validateForm = useCallback((): { isValid: boolean; validatedData?: EmployerWaitlistData } => {
@@ -121,7 +120,7 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
       const validation = validateForm();
       
       if (!validation.isValid || !validation.validatedData) {
-        setState('error');
+        setState('idle');
         toast({
           title: 'Validation Error',
           description: 'Please fix the errors above and try again.',
@@ -143,7 +142,7 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
       });
       
     } catch (error) {
-      setState('error');
+      setState('idle');
       logger.error('Waitlist submission failed', { error });
       
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
@@ -154,7 +153,7 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
         variant: 'destructive'
       });
     }
-  }, [formData, state, validateForm]);
+  }, [validateForm]);
 
   // Reset form
   const resetForm = useCallback(() => {
