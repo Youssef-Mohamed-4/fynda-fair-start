@@ -1,33 +1,95 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { CheckCircle2 } from 'lucide-react';
+import { CheckCircle, Users, Clock, ArrowRight } from 'lucide-react';
 
 interface WaitlistSuccessMessageProps {
-  onSubmitAnother: () => void;
+  onSubmitAnother?: () => void;
 }
 
 export const WaitlistSuccessMessage = ({ onSubmitAnother }: WaitlistSuccessMessageProps) => {
   return (
-    <section id="waitlist-form" className="py-20 bg-gradient-to-br from-primary/5 to-background">
-      <div className="container mx-auto px-4">
-        <div className="max-w-2xl mx-auto text-center">
-          <div className="flex items-center justify-center mb-6">
-            <div className="bg-green-100 dark:bg-green-900/20 p-3 rounded-full">
-              <CheckCircle2 className="h-8 w-8 text-green-600 dark:text-green-400" />
+    <Card className="relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-transparent" />
+      
+      <CardHeader className="relative text-center pb-6">
+        <div className="mx-auto mb-4 w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center">
+          <CheckCircle className="w-8 h-8 text-primary" />
+        </div>
+        
+        <CardTitle className="text-2xl font-bold text-foreground">
+          Welcome to the Waitlist!
+        </CardTitle>
+        
+        <CardDescription className="text-base text-muted-foreground max-w-md mx-auto">
+          Thank you for your interest in Fynda. You've been successfully added to our employer waitlist.
+        </CardDescription>
+      </CardHeader>
+
+      <CardContent className="relative space-y-6">
+        {/* What happens next */}
+        <div className="space-y-4">
+          <h3 className="font-semibold text-foreground flex items-center gap-2">
+            <Clock className="w-4 h-4 text-primary" />
+            What happens next?
+          </h3>
+          
+          <div className="space-y-3 text-sm text-muted-foreground ml-6">
+            <div className="flex items-start gap-2">
+              <ArrowRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+              <span>We'll keep you updated on our launch progress via email</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <ArrowRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+              <span>You'll be among the first to access our platform when we go live</span>
+            </div>
+            <div className="flex items-start gap-2">
+              <ArrowRight className="w-4 h-4 text-primary flex-shrink-0 mt-0.5" />
+              <span>Early access to exclusive features and priority support</span>
             </div>
           </div>
-          <h2 className="text-3xl font-bold mb-4">Thank You!</h2>
-          <p className="text-lg text-muted-foreground mb-8">
-            You've been added to our employer waitlist. We'll be in touch soon to help you find top early-career talent.
-          </p>
-          <Button 
-            onClick={onSubmitAnother}
-            variant="outline"
-            className="transition-all duration-200 hover:scale-105"
-          >
-            Submit Another Entry
-          </Button>
         </div>
-      </div>
-    </section>
+
+        {/* Community message */}
+        <div className="bg-muted/50 rounded-lg p-4">
+          <div className="flex items-center gap-2 mb-2">
+            <Users className="w-4 h-4 text-primary" />
+            <span className="font-medium text-sm text-foreground">Join the Community</span>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            You're now part of an exclusive group of forward-thinking employers who are ready 
+            to revolutionize their early-career hiring process.
+          </p>
+        </div>
+
+        {/* Action buttons */}
+        <div className="flex flex-col sm:flex-row gap-3 pt-4">
+          <Button 
+            onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+            variant="outline" 
+            className="flex-1"
+          >
+            Explore More Features
+          </Button>
+          
+          {onSubmitAnother && (
+            <Button 
+              onClick={onSubmitAnother}
+              variant="outline" 
+              className="flex-1"
+            >
+              Add Another Registration
+            </Button>
+          )}
+        </div>
+
+        {/* Footer note */}
+        <div className="text-center pt-4 border-t">
+          <p className="text-xs text-muted-foreground">
+            Keep an eye on your inbox for updates. We're working hard to bring you something amazing!
+          </p>
+        </div>
+      </CardContent>
+    </Card>
   );
 };

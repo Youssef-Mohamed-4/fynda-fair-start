@@ -1,48 +1,75 @@
 import { supabase } from '@/integrations/supabase/client';
-import { WaitlistEmployerData, AdminData } from '@/types/auth';
+import { AdminData } from '@/types/auth';
 import { logAuth, logSecurity, logger } from '@/utils/logger';
-import { employerWaitlistSchema } from '@/schemas/waitlist';
+import { employerWaitlistSchema, type EmployerWaitlistData } from '@/schemas/waitlist';
 
 export const submitWaitlistEntry = async (
   type: 'employer', 
-  data: WaitlistEmployerData
+  data: EmployerWaitlistData
 ) => {
   try {
-    // Validate data with Zod schema
+    // Double validation with Zod schema for security
     const validatedData = employerWaitlistSchema.parse(data);
     
     logger.info('Submitting to employers waitlist', { 
       email: validatedData.email,
-      industry: validatedData.industry 
+      industry: validatedData.industry,
+      company_size: validatedData.company_size
     });
 
+    // Submit to Supabase with comprehensive error handling
     const { data: result, error } = await supabase
       .from('employers_waitlist')
       .insert(validatedData)
       .select();
 
     if (error) {
-      logger.error('Waitlist submission error', { 
+      logger.error('Supabase waitlist submission error', { 
         code: error.code, 
-        message: error.message 
+        message: error.message,
+        details: error.details 
       });
       
-      if (error.code === '23505') {
-        throw new Error('This email is already registered in our waitlist!');
+      // Handle specific database errors
+      switch (error.code) {
+        case '23505': // Unique constraint violation
+          throw new Error('This email is already registered in our waitlist!');
+        case '23514': // Check constraint violation  
+          throw new Error('Invalid data provided. Please check your entries.');
+        case '42501': // Permission denied
+          throw new Error('Permission denied. Please try again.');
+        default:
+          throw new Error('Failed to submit waitlist entry. Please try again.');
       }
-      
-      throw new Error(error.message || 'Failed to submit waitlist entry');
+    }
+
+    if (!result || result.length === 0) {
+      throw new Error('No data returned from submission. Please try again.');
     }
 
     logger.info('Waitlist entry submitted successfully', { 
-      id: result[0]?.id 
+      id: result[0]?.id,
+      email: validatedData.email
     });
+    
+    // Dispatch success event for UI updates
+    window.dispatchEvent(new CustomEvent('waitlist-success', { 
+      detail: { id: result[0]?.id } 
+    }));
     
     return { success: true, data: result };
   } catch (error) {
-    // Only log if it's not already a validation error that was logged
-    if (!(error instanceof Error && error.message.includes('email is already registered'))) {
-      logger.error('Waitlist submission error', { error });
+    // Enhanced error logging with context
+    if (error instanceof Error) {
+      if (!error.message.includes('email is already registered')) {
+        logger.error('Waitlist submission error', { 
+          error: error.message,
+          stack: error.stack,
+          data: { ...data, email: '[REDACTED]' } // Don't log sensitive email in errors
+        });
+      }
+    } else {
+      logger.error('Unknown waitlist submission error', { error });
     }
     throw error;
   }

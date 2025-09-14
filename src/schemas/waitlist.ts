@@ -1,20 +1,22 @@
 import { z } from 'zod';
 
-// Base validation schemas
+// Base validation schemas with security measures
 export const nameSchema = z
   .string()
   .min(2, 'Name must be at least 2 characters')
   .max(100, 'Name must be less than 100 characters')
-  .regex(/^[a-zA-Z\s\-']+$/, 'Name can only contain letters, spaces, hyphens, and apostrophes')
-  .trim();
+  .regex(/^[a-zA-Z\s\-'\.]+$/, 'Name can only contain letters, spaces, hyphens, apostrophes, and periods')
+  .trim()
+  .transform(val => val.replace(/\s+/g, ' ')); // Normalize whitespace
 
 export const emailSchema = z
   .string()
   .email('Please enter a valid email address')
   .max(254, 'Email address is too long')
-  .toLowerCase();
+  .toLowerCase()
+  .trim();
 
-// Industry options
+// Industry options - validated enum for security
 export const industryOptions = [
   'Technology',
   'Healthcare', 
@@ -33,7 +35,7 @@ export const industrySchema = z.enum(industryOptions, {
   errorMap: () => ({ message: 'Please select a valid industry' })
 });
 
-// Company size options
+// Company size options - validated enum for security
 export const companySizeOptions = [
   '1-10',
   '11-50',
@@ -47,27 +49,35 @@ export const companySizeSchema = z.enum(companySizeOptions, {
   errorMap: () => ({ message: 'Please select a valid company size' })
 });
 
-// Employer waitlist schema
+// Main waitlist schema with comprehensive validation
 export const employerWaitlistSchema = z.object({
   name: nameSchema,
   email: emailSchema,
   industry: industrySchema,
   company_size: companySizeSchema,
   early_career_hires_per_year: z
-    .union([
-      z.number().int('Must be a whole number').min(0, 'Cannot be negative').max(10000, 'Please enter a reasonable number'),
-      z.undefined()
-    ])
+    .number()
+    .int('Must be a whole number')
+    .min(0, 'Cannot be negative')
+    .max(10000, 'Please enter a reasonable number')
     .optional()
 });
 
+// Inferred types for type safety
 export type EmployerWaitlistData = z.infer<typeof employerWaitlistSchema>;
 
-// Form data type (before validation)
+// Form data type (string inputs before validation)
 export type EmployerFormData = {
   name: string;
   email: string;
   industry: string;
   company_size: string;
   early_career_hires_per_year: string;
+};
+
+// Validation result type
+export type ValidationResult = {
+  isValid: boolean;
+  data?: EmployerWaitlistData;
+  errors?: Partial<Record<keyof EmployerFormData, string>>;
 };
