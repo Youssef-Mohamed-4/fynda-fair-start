@@ -8,45 +8,44 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Download, Search, Trash2, Mail, AlertCircle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { WaitlistApiService } from '@/services/waitlist-api';
+import { useDebounce } from '@/hooks/useDebounce';
 
 const WaitlistManagement = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const debouncedSearchTerm = useDebounce(searchTerm, 300);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch waitlist data from the actual employers_waitlist table
+  // Fetch waitlist data using the service layer
   const { data: waitlistData, isLoading } = useQuery({
     queryKey: ['waitlist-data'],
     queryFn: async () => {
-      const employersResult = await supabase
-        .from('employers_waitlist')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (employersResult.error) throw employersResult.error;
-
+      const employers = await WaitlistApiService.fetchEmployerEntries();
       return {
         candidates: [], // No candidates table available
-        employers: employersResult.data || [],
+        employers: employers || [],
       };
     },
   });
 
-  // Delete entry mutation
+  // Delete entry mutation using service layer
   const deleteEntry = useMutation({
     mutationFn: async ({ id }: { id: string }) => {
-      const { error } = await supabase
-        .from('employers_waitlist')
-        .delete()
-        .eq('id', id);
-      if (error) throw error;
+      await WaitlistApiService.deleteEmployerEntry(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['waitlist-data'] });
       toast({
         title: "Entry deleted",
         description: "The waitlist entry has been removed successfully.",
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: "Delete failed",
+        description: "Failed to delete the waitlist entry. Please try again.",
+        variant: "destructive",
       });
     },
   });
@@ -77,11 +76,11 @@ const WaitlistManagement = () => {
     window.URL.revokeObjectURL(url);
   };
 
-  // Filter data based on search
+  // Filter data based on debounced search term
   const filteredEmployers = waitlistData?.employers.filter(employer =>
-    employer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employer.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    employer.industry?.toLowerCase().includes(searchTerm.toLowerCase())
+    employer.name.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    employer.email.toLowerCase().includes(debouncedSearchTerm.toLowerCase()) ||
+    employer.industry?.toLowerCase().includes(debouncedSearchTerm.toLowerCase())
   ) || [];
 
   if (isLoading) {

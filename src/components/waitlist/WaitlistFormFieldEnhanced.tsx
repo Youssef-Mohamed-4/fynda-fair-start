@@ -1,9 +1,10 @@
+import React, { memo } from 'react';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { AlertCircle } from 'lucide-react';
+import { AlertCircle, Loader2 } from 'lucide-react';
 
-interface WaitlistFormFieldProps {
+interface WaitlistFormFieldEnhancedProps {
   id: string;
   label: string;
   type: 'text' | 'email' | 'number' | 'select';
@@ -16,9 +17,10 @@ interface WaitlistFormFieldProps {
   min?: number;
   max?: number;
   maxLength?: number;
+  isValidating?: boolean;
 }
 
-export const WaitlistFormField = ({
+export const WaitlistFormFieldEnhanced = memo(({
   id,
   label,
   type,
@@ -30,8 +32,9 @@ export const WaitlistFormField = ({
   options = [],
   min,
   max,
-  maxLength
-}: WaitlistFormFieldProps) => {
+  maxLength,
+  isValidating = false
+}: WaitlistFormFieldEnhancedProps) => {
   const hasError = Boolean(error);
 
   const renderInput = () => {
@@ -57,24 +60,31 @@ export const WaitlistFormField = ({
     }
 
     return (
-      <Input
-        id={id}
-        type={type}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        className={`transition-colors ${hasError ? 'border-destructive focus:ring-destructive' : ''}`}
-        aria-describedby={hasError ? `${id}-error` : undefined}
-        aria-invalid={hasError}
-        min={min}
-        max={max}
-        maxLength={maxLength}
-        autoComplete={
-          type === 'email' ? 'email' : 
-          type === 'text' && label.toLowerCase().includes('name') ? 'name' : 
-          'off'
-        }
-      />
+      <div className="relative">
+        <Input
+          id={id}
+          type={type}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder={placeholder}
+          className={`transition-colors pr-10 ${hasError ? 'border-destructive focus:ring-destructive' : ''}`}
+          aria-describedby={hasError ? `${id}-error` : undefined}
+          aria-invalid={hasError}
+          min={min}
+          max={max}
+          maxLength={maxLength}
+          autoComplete={
+            type === 'email' ? 'email' : 
+            type === 'text' && label.toLowerCase().includes('name') ? 'name' : 
+            'off'
+          }
+        />
+        {isValidating && (
+          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+          </div>
+        )}
+      </div>
     );
   };
 
@@ -93,7 +103,7 @@ export const WaitlistFormField = ({
       {hasError && (
         <div 
           id={`${id}-error`}
-          className="flex items-center gap-1 text-sm text-destructive"
+          className="flex items-center gap-1 text-sm text-destructive animate-in slide-in-from-left-1 duration-200"
           role="alert"
           aria-live="polite"
         >
@@ -103,4 +113,6 @@ export const WaitlistFormField = ({
       )}
     </div>
   );
-};
+});
+
+WaitlistFormFieldEnhanced.displayName = 'WaitlistFormFieldEnhanced';

@@ -1,9 +1,10 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Loader2, Shield, Users } from 'lucide-react';
-import { WaitlistFormField } from './WaitlistFormField';
+import { WaitlistFormFieldEnhanced } from './WaitlistFormFieldEnhanced';
 import { useWaitlistForm } from '@/hooks/useWaitlistForm';
 import { industryOptions, companySizeOptions } from '@/schemas/waitlist';
+import { ERROR_MESSAGES } from '@/constants/validation';
 
 export const WaitlistForm = () => {
   const {
@@ -48,7 +49,7 @@ export const WaitlistForm = () => {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <WaitlistFormField
+              <WaitlistFormFieldEnhanced
                 id="employer-name"
                 label="Full Name"
                 type="text"
@@ -60,7 +61,7 @@ export const WaitlistForm = () => {
                 maxLength={100}
               />
 
-              <WaitlistFormField
+              <WaitlistFormFieldEnhanced
                 id="employer-email"
                 label="Work Email Address"
                 type="email"
@@ -80,7 +81,7 @@ export const WaitlistForm = () => {
             </h3>
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <WaitlistFormField
+              <WaitlistFormFieldEnhanced
                 id="employer-industry"
                 label="Industry"
                 type="select"
@@ -92,7 +93,7 @@ export const WaitlistForm = () => {
                 required
               />
 
-              <WaitlistFormField
+              <WaitlistFormFieldEnhanced
                 id="employer-company-size"
                 label="Company Size"
                 type="select"
@@ -112,7 +113,7 @@ export const WaitlistForm = () => {
               Hiring Needs
             </h3>
             
-            <WaitlistFormField
+            <WaitlistFormFieldEnhanced
               id="employer-early-careers"
               label="Early career professionals hired per year"
               type="number"
@@ -150,7 +151,7 @@ export const WaitlistForm = () => {
             {/* Form validation feedback */}
             {!isValid && Object.keys(errors).length === 0 && (
               <p className="text-xs text-muted-foreground text-center mt-2">
-                Please fill in all required fields to continue
+                {ERROR_MESSAGES.REQUIRED_FIELDS}
               </p>
             )}
           </div>
