@@ -72,15 +72,12 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
     setErrors(prev => ({ ...prev, [field]: undefined }));
     
     // Validate after user stops typing (debounced via setTimeout)
-    const timeoutId = setTimeout(() => {
+    setTimeout(() => {
       const error = validateField(field, value);
       if (error) {
         setErrors(prev => ({ ...prev, [field]: error }));
       }
     }, 300);
-    
-    // Cleanup timeout on next call
-    return () => clearTimeout(timeoutId);
   }, [validateField]);
 
   // Validate entire form
