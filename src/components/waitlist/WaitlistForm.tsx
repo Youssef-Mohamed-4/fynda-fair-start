@@ -17,10 +17,18 @@ export const WaitlistForm = () => {
   } = useWaitlistForm();
 
   const handleSubmit = async (e: React.FormEvent) => {
+    console.log('🔥 BUTTON CLICKED - handleSubmit fired!');
     e.preventDefault();
     console.log('🎯 Form submitted via handleSubmit');
     console.log('📊 Current form state:', { formData, errors, isValid, isSubmitting });
+    console.log('🚦 Button disabled state:', !isValid || isSubmitting);
     await submitForm();
+  };
+
+  // Add click handler directly to button for debugging
+  const handleButtonClick = () => {
+    console.log('🖱️ BUTTON DIRECT CLICK DETECTED!');
+    console.log('📋 Form validity check:', { isValid, isSubmitting });
   };
 
   return (
@@ -136,6 +144,7 @@ export const WaitlistForm = () => {
               size="lg"
               className="w-full font-medium transition-all duration-200 hover:scale-[1.02] disabled:scale-100" 
               disabled={!isValid || isSubmitting}
+              onClick={handleButtonClick}
             >
               {isSubmitting ? (
                 <>
