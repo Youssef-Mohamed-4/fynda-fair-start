@@ -129,7 +129,9 @@ export const WaitlistForm = () => {
           <div className="pt-4">
             <Button 
               type="submit" 
-              className="w-full h-12 text-base font-medium transition-all duration-200 hover:scale-[1.02] disabled:scale-100" 
+              variant="waitlist"
+              size="lg"
+              className="w-full font-medium transition-all duration-200 hover:scale-[1.02] disabled:scale-100" 
               disabled={!isValid || isSubmitting}
             >
               {isSubmitting ? (
