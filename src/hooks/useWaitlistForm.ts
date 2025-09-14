@@ -51,7 +51,12 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
 
   // Submit form with validation
   const submitForm = useCallback(async () => {
-    if (isSubmitting) return;
+    console.log('🚀 Submit form called', { isSubmitting });
+    
+    if (isSubmitting) {
+      console.log('❌ Already submitting, aborting');
+      return;
+    }
 
     try {
       // Clear any existing timeouts
@@ -59,19 +64,22 @@ export const useWaitlistForm = (): UseWaitlistFormReturn => {
       
       // Validate form
       const validation = validateForm();
+      console.log('📝 Form validation result:', validation);
       
       if (!validation.isValid && validation.errors) {
+        console.log('❌ Form validation failed:', validation.errors);
         // Set all validation errors
         Object.entries(validation.errors).forEach(([field, error]) => {
           setFieldError(field as keyof EmployerFormData, error);
         });
       }
       
-      // Submit to API
+      // Submit to API regardless of client validation (let server validate)
+      console.log('🌐 Submitting to API...');
       await submitToApi(validation);
       
     } catch (error) {
-      console.error('Form submission error:', error);
+      console.error('❌ Form submission error:', error);
     }
   }, [isSubmitting, clearAllTimeouts, validateForm, setFieldError, submitToApi]);
 

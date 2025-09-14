@@ -18,6 +18,8 @@ export const WaitlistForm = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    console.log('🎯 Form submitted via handleSubmit');
+    console.log('📊 Current form state:', { formData, errors, isValid, isSubmitting });
     await submitForm();
   };
 

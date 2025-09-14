@@ -17,8 +17,8 @@ const buttonVariants = cva(
         link: "text-primary underline-offset-4 hover:underline",
         // Fynda custom variants
         hero: "bg-gradient-hero text-white font-semibold shadow-medium hover:shadow-large hover:scale-105 transition-bounce",
-        waitlist: "bg-fynda-navy text-white font-medium hover:bg-fynda-navy/90 shadow-soft hover:shadow-medium",
-        subtle: "bg-fynda-blue-50 text-fynda-navy border border-fynda-blue-100 hover:bg-fynda-blue-100",
+        waitlist: "bg-primary text-primary-foreground font-medium hover:bg-primary/90 shadow-soft hover:shadow-medium border border-primary/20",
+        subtle: "bg-secondary text-secondary-foreground border border-border hover:bg-secondary/80",
       },
       size: {
         default: "h-10 px-4 py-2",

@@ -8,7 +8,7 @@
 
 @layer base {
   :root {
-    /* Core Brand Colors */
+    /* Core Brand Colors - HSL Values */
     --fynda-navy: 213 85% 15%;  /* #0B1D39 */
     --fynda-light-blue: 213 85% 60%; /* Light blue for gradients */
     --fynda-blue-50: 213 100% 96%; /* Very light blue */

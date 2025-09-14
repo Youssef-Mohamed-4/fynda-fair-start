@@ -104,6 +104,21 @@ export const useWaitlistValidation = (formData: EmployerFormData) => {
       formData.company_size
     );
     const hasNoErrors = Object.keys(errors).length === 0;
+    
+    // Debug logging for validation state
+    console.log('Validation state:', {
+      hasRequiredFields,
+      hasNoErrors,
+      formData: {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        industry: formData.industry,
+        company_size: formData.company_size
+      },
+      errors,
+      isValid: hasRequiredFields && hasNoErrors
+    });
+    
     return hasRequiredFields && hasNoErrors;
   }, [formData, errors]);
 
