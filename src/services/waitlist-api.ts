@@ -24,6 +24,17 @@ export class WaitlistApiService {
         company_size: validatedData.company_size
       });
 
+      // Test connection first
+      console.log('🔌 Testing Supabase connection...');
+      const connectionTest = await supabase.from('employers_waitlist').select('count(*)', { count: 'exact', head: true });
+      
+      if (connectionTest.error) {
+        console.error('❌ Supabase connection test failed:', connectionTest.error);
+        throw new Error(`Connection failed: ${connectionTest.error.message}`);
+      }
+      
+      console.log('✅ Connection test passed, inserting data...');
+      
       // Submit to Supabase with comprehensive error handling
       const { data: result, error } = await supabase
         .from('employers_waitlist')

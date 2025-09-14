@@ -26,12 +26,13 @@ export const useWaitlistSubmission = () => {
         return { success: false, errors: validation.errors };
       }
 
+      console.log('🌐 Submitting waitlist data:', validation);
       logger.info('Submitting waitlist form', { 
         email: validation.data?.email,
         industry: validation.data?.industry 
       });
       
-      // Submit with retry logic
+      // Submit with enhanced retry logic
       const result = await RetryService.withRetry(
         () => WaitlistApiService.submitEmployerEntry(validation.data!),
         {
@@ -41,6 +42,13 @@ export const useWaitlistSubmission = () => {
                 error.error === ERROR_MESSAGES.INVALID_DATA) {
               return false;
             }
+            // Retry network connection failures
+            if (error.error?.includes('Failed to fetch') || 
+                error.error?.includes('NetworkError') ||
+                error.error?.includes('Connection failed')) {
+              console.log('🔄 Retrying network request...');
+              return true;
+            }
             return true;
           }
         }
@@ -49,16 +57,18 @@ export const useWaitlistSubmission = () => {
       if (result.success) {
         setState('success');
         setShowSuccess(true);
+        console.log('🎉 Waitlist submission successful!');
         logger.info('Waitlist submission successful');
         
         toast({
-          title: 'Success!',
-          description: ERROR_MESSAGES.SUBMISSION_SUCCESS,
+          title: 'Welcome to the waitlist! 🎉',
+          description: "We'll be in touch soon with updates.",
         });
         
         return { success: true, data: result.data };
       } else {
         setState('idle');
+        console.error('❌ API returned error:', result.error);
         toast({
           title: 'Submission Failed',
           description: result.error || ERROR_MESSAGES.UNEXPECTED_ERROR,
@@ -73,17 +83,31 @@ export const useWaitlistSubmission = () => {
       logger.error('Waitlist submission failed', { error });
       
       let errorMessage: string = ERROR_MESSAGES.UNEXPECTED_ERROR;
+      let errorTitle: string = 'Submission Failed';
       
       if (error instanceof Error) {
+        console.error('❌ Waitlist submission failed:', {
+          error: error.message,
+          stack: error.stack,
+          type: typeof error
+        });
+        
         if (error.message.includes('email is already registered')) {
           errorMessage = ERROR_MESSAGES.EMAIL_EXISTS;
-        } else if (error.message.includes('network') || error.message.includes('fetch')) {
-          errorMessage = ERROR_MESSAGES.NETWORK_ERROR;
+        } else if (error.message.includes('Failed to fetch')) {
+          errorMessage = 'Unable to connect to our servers. Please check your internet connection and try again.';
+          errorTitle = 'Connection Error';
+        } else if (error.message.includes('NetworkError')) {
+          errorMessage = 'Network error occurred. Please try again in a moment.';
+          errorTitle = 'Network Error';
+        } else if (error.message.includes('Connection failed')) {
+          errorMessage = 'Connection to database failed. Our team has been notified.';
+          errorTitle = 'Connection Error';
         }
       }
       
       toast({
-        title: 'Submission Failed',
+        title: errorTitle,
         description: errorMessage,
         variant: 'destructive'
       });

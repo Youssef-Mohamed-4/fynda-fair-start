@@ -13,5 +13,23 @@ export const supabase = createClient<Database>(SUPABASE_URL, SUPABASE_PUBLISHABL
     storage: localStorage,
     persistSession: true,
     autoRefreshToken: true,
+  },
+  global: {
+    headers: {
+      'X-Client-Info': 'supabase-js-web'
+    }
+  },
+  db: {
+    schema: 'public'
   }
 });
+
+// Test connectivity on initialization
+supabase.from('employers_waitlist').select('count(*)', { count: 'exact', head: true })
+  .then(({ error }) => {
+    if (error) {
+      console.error('❌ Supabase connectivity test failed:', error);
+    } else {
+      console.log('✅ Supabase client connected successfully');
+    }
+  });
