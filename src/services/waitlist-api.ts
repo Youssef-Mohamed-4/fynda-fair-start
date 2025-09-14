@@ -24,45 +24,32 @@ export class WaitlistApiService {
         company_size: validatedData.company_size
       });
 
-      // Test connection first
-      console.log('🔌 Testing Supabase connection...');
-      const connectionTest = await supabase.from('employers_waitlist').select('count(*)', { count: 'exact', head: true });
-      
-      if (connectionTest.error) {
-        console.error('❌ Supabase connection test failed:', connectionTest.error);
-        throw new Error(`Connection failed: ${connectionTest.error.message}`);
-      }
-      
-      console.log('✅ Connection test passed, inserting data...');
-      
-      // Submit to Supabase with comprehensive error handling
-      const { data: result, error } = await supabase
-        .from('employers_waitlist')
-        .insert(validatedData)
-        .select();
+      // Use Supabase Edge Function for CSP-safe submission
+      console.log('🔌 Submitting via Edge Function...');
+      const { data: result, error } = await supabase.functions.invoke('join-waitlist', {
+        body: validatedData
+      });
 
       if (error) {
-        logger.error('Supabase waitlist submission error', { 
-          code: error.code, 
+        console.error('❌ Edge Function error:', error);
+        logger.error('Edge Function waitlist submission error', { 
           message: error.message,
-          details: error.details 
+          details: error 
         });
         
-        // Handle specific database errors
-        const errorMessage = this.mapDatabaseError(error.code);
-        return { success: false, error: errorMessage };
+        return { success: false, error: error.message || ERROR_MESSAGES.SUBMISSION_FAILED };
       }
 
-      if (!result || result.length === 0) {
-        return { success: false, error: ERROR_MESSAGES.NO_DATA_RETURNED };
+      if (!result?.success) {
+        return { success: false, error: result?.error || ERROR_MESSAGES.SUBMISSION_FAILED };
       }
 
-      logger.info('Waitlist entry submitted successfully', { 
-        id: result[0]?.id,
-        email: validatedData.email
+      logger.info('Waitlist entry submitted successfully via Edge Function', { 
+        success: result.success,
+        message: result.message
       });
       
-      return { success: true, data: result };
+      return { success: true, data: result.data };
     } catch (error) {
       // Enhanced error logging with context
       if (error instanceof Error) {

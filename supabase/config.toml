@@ -1,1 +1,4 @@
 project_id = "dujyflljecirgulzienx"
+
+[functions.join-waitlist]
+verify_jwt = false
