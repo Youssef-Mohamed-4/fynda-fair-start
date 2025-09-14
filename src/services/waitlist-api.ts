@@ -25,10 +25,12 @@ export class WaitlistApiService {
       });
 
       // Use Supabase Edge Function for CSP-safe submission
-      console.log('🔌 Submitting via Edge Function...');
+      console.log('🔌 Submitting via Edge Function...', validatedData);
       const { data: result, error } = await supabase.functions.invoke('join-waitlist', {
         body: validatedData
       });
+      
+      console.log('📤 Edge Function response:', { result, error });
 
       if (error) {
         console.error('❌ Edge Function error:', error);

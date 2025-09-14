@@ -11,20 +11,31 @@ export const useWaitlistSubmission = () => {
   const { state, setState, setShowSuccess } = useWaitlistContext();
 
   const submitForm = useCallback(async (validation: ValidationResult) => {
+    console.log('📋 SUBMISSION DEBUG - Validation result:', {
+      isValid: validation.isValid,
+      hasData: !!validation.data,
+      errors: validation.errors,
+      data: validation.data
+    });
+    
     if (state === 'loading') return;
 
     setState('loading');
     
     try {
-      if (!validation.isValid) {
+      // BYPASS CLIENT VALIDATION - let server validate instead
+      if (!validation.data) {
+        console.error('❌ No validation data provided');
         setState('idle');
         toast({
-          title: 'Validation Error',
-          description: ERROR_MESSAGES.VALIDATION_ERROR,
+          title: 'Validation Error', 
+          description: 'Form data is missing',
           variant: 'destructive'
         });
         return { success: false, errors: validation.errors };
       }
+
+      console.log('✅ Proceeding with submission to Edge Function...');
 
       console.log('🌐 Submitting waitlist data:', validation);
       logger.info('Submitting waitlist form', { 
